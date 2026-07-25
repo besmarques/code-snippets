@@ -181,7 +181,7 @@ function buildLanguageNodes(): SidebarNode[] {
     grouped.set(entry.language, group);
   }
 
-  return (['js', 'ts', 'react', 'java', 'php'] as const)
+  return (['js', 'ts', 'react', 'html', 'css', 'java', 'php'] as const)
     .filter((language) => grouped.has(language))
     .map((language) => {
       const languageEntries = grouped.get(language) ?? [];

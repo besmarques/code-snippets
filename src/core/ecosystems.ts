@@ -4,6 +4,7 @@ export const DEFAULT_ECOSYSTEM = 'core';
 
 const ECOSYSTEM_LABELS: Readonly<Record<string, string>> = {
   axios: 'Axios',
+  bootstrap: 'Bootstrap',
   chakra: 'Chakra UI',
   core: 'Core',
   dotenv: 'dotenv',
@@ -16,6 +17,7 @@ const ECOSYSTEM_LABELS: Readonly<Record<string, string>> = {
   mui: 'Material UI',
   pdo: 'PDO',
   prisma: 'Prisma',
+  sass: 'Sass',
   shadcn: 'shadcn/ui',
   sql: 'SQL',
   tailwind: 'Tailwind CSS',
@@ -26,6 +28,8 @@ const ECOSYSTEM_LABELS: Readonly<Record<string, string>> = {
 const ECOSYSTEM_PATTERN = /^[a-z][a-z0-9-]*$/;
 
 const LANGUAGE_LABELS: Readonly<Record<TriggerLanguageKey, string>> = {
+  css: 'CSS',
+  html: 'HTML',
   java: 'Java',
   js: 'JavaScript',
   php: 'PHP',
@@ -85,6 +89,8 @@ export function listEcosystemOptionsByLanguage(
   }
 
   return {
+    css: buildLanguageOptions(counts.get('css')),
+    html: buildLanguageOptions(counts.get('html')),
     java: buildLanguageOptions(counts.get('java')),
     js: buildLanguageOptions(counts.get('js')),
     php: buildLanguageOptions(counts.get('php')),

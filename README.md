@@ -23,7 +23,7 @@ Rules:
 - core entries are shown with `>`
 - package entries are shown without `>` in lists, but can still be discovered by typing `>`
 - manual expansion accepts `>map.js`, `>post.express.js`, and `post.express.js`
-- supported language suffixes are `js`, `ts`, `react`, `java`, and `php`
+- supported language suffixes are `js`, `ts`, `react`, `html`, `css`, `java`, and `php`
 - suffix aliases such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected
 
 ## What Lives Where
@@ -47,6 +47,8 @@ Examples:
 - `src/data/ecosystems/js/packages/express.ts`
 - `src/data/ecosystems/ts/packages/prisma.ts`
 - `src/data/ecosystems/react/packages/tailwind.ts`
+- `src/data/ecosystems/html/packages/bootstrap.ts`
+- `src/data/ecosystems/css/packages/sass.ts`
 
 ### Custom Entries
 
@@ -65,6 +67,8 @@ These are the current built-in package groups:
 - JavaScript: `axios`, `dotenv`, `express`, `jsonwebtoken`, `sql`
 - TypeScript: `drizzle`, `express`, `prisma`, `typeorm`, `zod`
 - React: `chakra`, `mui`, `shadcn`, `tailwind`
+- HTML: `bootstrap`, `tailwind`
+- CSS: `sass`, `tailwind`
 - Java: `jdbc`, `jpa`
 - PHP: `eloquent`, `pdo`
 
@@ -83,7 +87,7 @@ If a package is not in that list for the selected language, the custom-entry for
 
 - type `>` and start a core id such as `>map`
 - type `>` and start a package id such as `>post`, `>findmany`, or `>card`
-- use language-only filters such as `>.js`, `>.ts`, `>.react`, `>.java`, or `>.php`
+- use language-only filters such as `>.js`, `>.ts`, `>.react`, `>.html`, `>.css`, `>.java`, or `>.php`
 
 ### Expand Trigger At Cursor
 
@@ -218,6 +222,7 @@ Use this flow while developing:
 4. in the Extension Development Host:
    - type `>map.js`
    - type `>post`
+   - type `>.html` or `>.css`
    - use `Translate Selection`
    - open the sidebar and inspect the catalog
 

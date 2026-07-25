@@ -2,6 +2,8 @@ import { DEFAULT_ECOSYSTEM, compareEcosystemIds, getEcosystemLabel, getLanguageL
 import type { DictionaryEntry, TriggerLanguageKey } from '../../types';
 
 const MARKDOWN_LANGUAGE_IDS: Readonly<Record<TriggerLanguageKey, string>> = {
+  css: 'css',
+  html: 'html',
   java: 'java',
   js: 'javascript',
   php: 'php',
@@ -146,7 +148,7 @@ export function buildEntriesMarkdown(entries: readonly DictionaryEntry[]): strin
     languageGroups.set(entry.language, ecosystemGroups);
   }
 
-  for (const language of ['js', 'ts', 'react', 'java', 'php'] as const) {
+  for (const language of ['js', 'ts', 'react', 'html', 'css', 'java', 'php'] as const) {
     const ecosystemGroups = languageGroups.get(language);
 
     if (!ecosystemGroups) {

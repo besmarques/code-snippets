@@ -70,6 +70,23 @@ test('registerCompletionProvider supports language-only trigger prefixes', () =>
   assert.ok(items.every((item) => typeof item.label === 'string' && item.label.endsWith('.php')));
 });
 
+test('registerCompletionProvider supports language-only trigger prefixes for CSS', () => {
+  __reset();
+  __setConfigurationValue('enableCompletions', true);
+
+  const context = { subscriptions: [] as Array<{ dispose(): void }> };
+  registerCompletionProvider(context as never);
+
+  const provider = __getCompletionProviders()[0]?.provider;
+  const text = 'const value = >.css';
+  const document = createTestDocument(text, 'css');
+  const items = provider?.provideCompletionItems(document as never, new vscode.Position(0, text.length));
+
+  assert.ok(Array.isArray(items));
+  assert.ok(items.length > 0);
+  assert.ok(items.every((item) => typeof item.label === 'string' && item.label.endsWith('.css')));
+});
+
 test('registerCompletionProvider surfaces custom entries from settings', () => {
   __reset();
   __setConfigurationValue('enableCompletions', true);

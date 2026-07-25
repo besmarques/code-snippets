@@ -27,6 +27,14 @@ test('resolveSelectionTranslationIntent parses package-scoped selections', () =>
   });
 });
 
+test('resolveSelectionTranslationIntent parses html selections', () => {
+  assert.deepEqual(resolveSelectionTranslationIntent('navbar.bootstrap.html'), {
+    explicitEcosystem: 'bootstrap',
+    explicitLanguage: 'html',
+    keyword: 'navbar',
+  });
+});
+
 test('resolveSelectionTranslationIntent parses prefixed keywords without languages', () => {
   assert.deepEqual(resolveSelectionTranslationIntent('>fetch'), {
     keyword: 'fetch',

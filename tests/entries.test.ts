@@ -144,6 +144,8 @@ test('listEntries includes ecosystem snippets from split catalog files', () => {
   assert.equal(entriesById.get('post.express.js')?.ecosystem, 'express');
   assert.equal(entriesById.get('findmany.prisma.ts')?.ecosystem, 'prisma');
   assert.equal(entriesById.get('card.tailwind.react')?.ecosystem, 'tailwind');
+  assert.equal(entriesById.get('navbar.bootstrap.html')?.ecosystem, 'bootstrap');
+  assert.equal(entriesById.get('mixin.sass.css')?.ecosystem, 'sass');
   assert.equal(entriesById.get('query.jdbc.java')?.ecosystem, 'jdbc');
   assert.equal(entriesById.get('model.eloquent.php')?.ecosystem, 'eloquent');
 });

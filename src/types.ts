@@ -1,5 +1,5 @@
-export const LANGUAGE_KEYS = ['js', 'ts', 'react', 'tsx', 'java', 'php'] as const;
-export const TRIGGER_LANGUAGE_KEYS = ['js', 'ts', 'react', 'java', 'php'] as const;
+export const LANGUAGE_KEYS = ['js', 'ts', 'react', 'tsx', 'html', 'css', 'java', 'php'] as const;
+export const TRIGGER_LANGUAGE_KEYS = ['js', 'ts', 'react', 'html', 'css', 'java', 'php'] as const;
 
 export type LanguageKey = (typeof LANGUAGE_KEYS)[number];
 export type TriggerLanguageKey = (typeof TRIGGER_LANGUAGE_KEYS)[number];

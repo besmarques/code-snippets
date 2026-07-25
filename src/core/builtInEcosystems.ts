@@ -25,6 +25,8 @@ function buildBuiltInEcosystemOptionsByLanguage(): Readonly<Record<TriggerLangua
   }
 
   return {
+    css: buildLanguageOptions(counts.get('css')),
+    html: buildLanguageOptions(counts.get('html')),
     java: buildLanguageOptions(counts.get('java')),
     js: buildLanguageOptions(counts.get('js')),
     php: buildLanguageOptions(counts.get('php')),

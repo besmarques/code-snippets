@@ -39,9 +39,9 @@ src/data/ecosystems/<language>/
 These foundations are already in place:
 
 - core and package id parsing
-- canonical language suffixes: `js`, `ts`, `react`, `java`, `php`
+- canonical language suffixes: `js`, `ts`, `react`, `html`, `css`, `java`, `php`
 - canonical keyword rules, including package-local keyword naming
-- built-in catalogs for JavaScript, TypeScript, React, Java, and PHP
+- built-in catalogs for JavaScript, TypeScript, React, HTML, CSS, Java, and PHP
 - package catalogs split by language under `src/data/ecosystems/<language>/packages`
 - completion provider with `>`-gated suggestions
 - language-only completion filtering such as `>.js`

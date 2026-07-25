@@ -1,11 +1,15 @@
 import { LANGUAGE_KEYS, TRIGGER_LANGUAGE_KEYS, type LanguageKey, type TriggerLanguageKey } from '../types';
 
 const LANGUAGE_ALIASES: Readonly<Record<string, LanguageKey>> = {
+  css: 'css',
+  html: 'html',
   javascript: 'js',
   js: 'js',
+  less: 'css',
   jsx: 'react',
   php: 'php',
   react: 'react',
+  scss: 'css',
   ts: 'ts',
   tsx: 'tsx',
   typescript: 'ts',
@@ -54,6 +58,14 @@ export function inferPreferredLanguages(languageId: string | undefined): Languag
       break;
     case 'javascriptreact':
       inferred = ['react', 'js', 'tsx', 'ts'];
+      break;
+    case 'html':
+      inferred = ['html', 'css', 'js'];
+      break;
+    case 'css':
+    case 'scss':
+    case 'less':
+      inferred = ['css', 'html'];
       break;
     case 'typescript':
       inferred = ['ts', 'js'];

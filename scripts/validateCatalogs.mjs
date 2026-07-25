@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import ts from 'typescript';
 
-const VALID_LANGUAGES = new Set(['js', 'ts', 'react', 'java', 'php']);
+const VALID_LANGUAGES = new Set(['js', 'ts', 'react', 'html', 'css', 'java', 'php']);
 const ECOSYSTEM_PATTERN = /^[a-z][a-z0-9-]*$/;
 const DEFAULT_ECOSYSTEM = 'core';
 const KEYWORD_PATTERN = /^[a-z][a-z0-9]*$/;
