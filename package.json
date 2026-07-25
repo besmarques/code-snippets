@@ -1,0 +1,162 @@
+{
+  "name": "code-dictionary",
+  "displayName": "Code Dictionary",
+  "description": "Insert code snippets from triggers like >map.js and package-scoped ids like post.express.js.",
+  "version": "0.0.1",
+  "publisher": "besma",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Snippets",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "dictionary",
+    "snippets",
+    "react",
+    "javascript",
+    "java",
+    "php",
+    "typescript"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/node/extension.js",
+  "browser": "./dist/web/extension.js",
+  "extensionKind": [
+    "workspace",
+    "ui"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeDictionary.expandAtCursor",
+        "title": "Code Dictionary: Expand Trigger at Cursor",
+        "category": "Code Dictionary"
+      },
+      {
+        "command": "codeDictionary.translateSelection",
+        "title": "Code Dictionary: Translate Selection",
+        "category": "Code Dictionary"
+      },
+      {
+        "command": "codeDictionary.pickAndInsert",
+        "title": "Code Dictionary: Pick and Insert Entry",
+        "category": "Code Dictionary"
+      },
+      {
+        "command": "codeDictionary.showAvailableEntries",
+        "title": "Code Dictionary: Show Available Entries",
+        "category": "Code Dictionary"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codeDictionary",
+          "title": "Code Dictionary",
+          "icon": "media/code-dictionary.svg"
+        }
+      ]
+    },
+    "views": {
+      "codeDictionary": [
+        {
+          "id": "codeDictionary.sidebar",
+          "name": "Dictionary"
+        },
+        {
+          "id": "codeDictionary.customEntryForm",
+          "name": "Add Custom Entry",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Code Dictionary",
+      "properties": {
+        "codeDictionary.enableCompletions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable completion suggestions for prefixed triggers such as >map.js."
+        },
+        "codeDictionary.customEntries": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "Custom dictionary entries added through VS Code settings. These entries apply across completions, quick picks, translation, trigger expansion, and the sidebar ecosystem catalog. Each entry must target `core` or a built-in package that already exists for that language. If a custom entry uses the same trigger id as a built-in entry, the custom entry wins.",
+          "items": {
+            "type": "object",
+            "required": [
+              "keyword",
+              "language",
+              "description",
+              "snippet"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "keyword": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*$",
+                "description": "Canonical keyword such as map, promiseall, or trycatch."
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "js",
+                  "ts",
+                  "react",
+                  "java",
+                  "php"
+                ],
+                "description": "Target language suffix."
+              },
+              "ecosystem": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$",
+                "description": "Existing built-in ecosystem or package id for that language, such as core, express, prisma, or tailwind."
+              },
+              "description": {
+                "type": "string",
+                "description": "Short description shown in the UI."
+              },
+              "snippet": {
+                "type": "string",
+                "description": "Snippet body inserted by the extension."
+              }
+            }
+          }
+        },
+        "codeDictionary.disabledEntries": {
+          "type": "array",
+          "default": [],
+          "description": "Disable built-in entries by id, for example map.js, >map.js, or post.express.js.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node scripts/runTests.mjs",
+    "validate": "node scripts/validateCatalogs.mjs",
+    "build": "node esbuild.mjs --production",
+    "build:dev": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "check": "npm test && tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.3"
+  }
+}
