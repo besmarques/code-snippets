@@ -11,7 +11,7 @@ export const PHP_CATALOG: LanguageCatalog = {
       description: 'Create a typed PHP function.',
       snippet: `function \${1:formatUser}(array \$user): string
 {
-    return \$user['\${2:name}'] ?? '';
+    \${2:\${TM_SELECTED_TEXT:return \$user['name'] ?? '';}}
 }
 \$0`,
     },
@@ -70,7 +70,7 @@ use \${2:RuntimeException};
       keyword: 'foreach',
       description: 'Loop through items with foreach.',
       snippet: `foreach (\$items as \$item) {
-    \${1:// ...}
+    \${1:\${TM_SELECTED_TEXT:// ...}}
 }
 \$0`,
     },
@@ -78,7 +78,7 @@ use \${2:RuntimeException};
       keyword: 'loop',
       description: 'Loop through a collection with foreach.',
       snippet: `foreach (\$items as \$item) {
-    \${1:// ...}
+    \${1:\${TM_SELECTED_TEXT:// ...}}
 }
 \$0`,
     },
@@ -157,9 +157,9 @@ curl_close(\$ch);
       description: 'Create a simple middleware-style handler.',
       snippet: `function \${1:handle}(\$request, callable \$next)
 {
-    if (!\$request->user()) {
+    \${2:\${TM_SELECTED_TEXT:if (!\$request->user()) {
         throw new RuntimeException('Unauthorized');
-    }
+    }}}
 
     return \$next(\$request);
 }

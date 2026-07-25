@@ -63,25 +63,24 @@ export const TS_CATALOG: LanguageCatalog = {
     {
       keyword: 'function',
       description: 'Create a typed TypeScript function.',
-      snippet: `function \${1:formatUser}(\${2:user}: \${3:User}): \${4:string} {
-  return \${2}.\${5:name};
+      snippet: `function \${2:formatUser}(\${3:user}: \${4:User}): \${5:string} {
+  \${1:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },
     {
       keyword: 'arrow',
       description: 'Create a typed arrow function.',
-      snippet: `const \${1:formatUser} = (\${2:user}: \${3:User}): \${4:string} => {
-  return \${2}.\${5:name};
+      snippet: `const \${2:formatUser} = (\${3:user}: \${4:User}): \${5:string} => {
+  \${1:\${TM_SELECTED_TEXT}}
 };
 \$0`,
     },
     {
       keyword: 'async',
       description: 'Create a typed async TypeScript function.',
-      snippet: `async function \${1:loadUser}(\${2:id}: \${3:string}): Promise<\${4:User}> {
-  const response = await fetch('/api/users/' + \${2});
-  return response.json() as Promise<\${4}>;
+      snippet: `async function \${2:loadUser}(\${3:id}: \${4:string}): Promise<\${5:User}> {
+  \${1:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },

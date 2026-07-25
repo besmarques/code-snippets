@@ -7,11 +7,25 @@ interface CompletionProviderRegistration {
   triggerCharacters: string[];
 }
 
+interface RegisteredTreeView {
+  provider: unknown;
+  viewId: string;
+}
+
+interface RegisteredWebviewView {
+  provider: unknown;
+  viewId: string;
+}
+
 interface StubState {
+  clipboardText: string;
   commands: Map<string, CommandHandler>;
   completionProviders: CompletionProviderRegistration[];
   configuration: Map<string, unknown>;
   informationMessages: string[];
+  outputMessages: string[];
+  registeredTreeViews: RegisteredTreeView[];
+  registeredWebviewViews: RegisteredWebviewView[];
   quickPickCalls: Array<{ items: any[]; options: unknown }>;
   quickPickHandler: QuickPickHandler;
   quickPickResult: unknown;
@@ -19,10 +33,14 @@ interface StubState {
 }
 
 const state: StubState = {
+  clipboardText: '',
   commands: new Map(),
   completionProviders: [],
   configuration: new Map(),
   informationMessages: [],
+  outputMessages: [],
+  registeredTreeViews: [],
+  registeredWebviewViews: [],
   quickPickCalls: [],
   quickPickHandler: undefined,
   quickPickResult: undefined,
@@ -49,6 +67,26 @@ export class SnippetString {
 
 export class MarkdownString {
   constructor(public readonly value: string) {}
+}
+
+export class EventEmitter<T> {
+  private listeners: Array<(value: T) => void> = [];
+
+  readonly event = (listener: (value: T) => void) => {
+    this.listeners.push(listener);
+
+    return {
+      dispose: () => {
+        this.listeners = this.listeners.filter((candidate) => candidate !== listener);
+      },
+    };
+  };
+
+  fire(value: T): void {
+    for (const listener of this.listeners) {
+      listener(value);
+    }
+  }
 }
 
 export class Uri {
@@ -79,6 +117,12 @@ export const ConfigurationTarget = {
   WorkspaceFolder: 3,
 } as const;
 
+export const TreeItemCollapsibleState = {
+  None: 0,
+  Collapsed: 1,
+  Expanded: 2,
+} as const;
+
 export class CompletionItem {
   detail: string | undefined;
   documentation: MarkdownString | undefined;
@@ -92,6 +136,31 @@ export class CompletionItem {
     public readonly kind?: number,
   ) {}
 }
+
+export class TreeItem {
+  command: unknown;
+  contextValue: string | undefined;
+  description: string | undefined;
+  id: string | undefined;
+  tooltip: unknown;
+
+  constructor(
+    public readonly label: string,
+    public readonly collapsibleState?: number,
+  ) {}
+}
+
+export const env = {
+  clipboard: {
+    async readText(): Promise<string> {
+      return state.clipboardText;
+    },
+
+    async writeText(value: string): Promise<void> {
+      state.clipboardText = value;
+    },
+  },
+};
 
 export const languages = {
   registerCompletionItemProvider(
@@ -151,6 +220,12 @@ export const workspace = {
 
   workspaceFolders: undefined as unknown[] | undefined,
 
+  onDidChangeConfiguration(_listener: unknown) {
+    return {
+      dispose() {},
+    };
+  },
+
   getConfiguration(namespace: string) {
     return {
       get<T>(key: string, defaultValue: T): T {
@@ -169,6 +244,15 @@ export const workspace = {
 
 export const window = {
   activeTextEditor: undefined as unknown,
+
+  createOutputChannel() {
+    return {
+      appendLine(message: string) {
+        state.outputMessages.push(message);
+      },
+      dispose() {},
+    };
+  },
 
   async showInformationMessage(message: string): Promise<string> {
     state.informationMessages.push(message);
@@ -190,27 +274,79 @@ export const window = {
     return message;
   },
 
-  registerWebviewViewProvider() {
+  registerTreeDataProvider(viewId: string, provider: unknown) {
+    const registration = {
+      viewId,
+      provider,
+    };
+
+    state.registeredTreeViews.push(registration);
+
     return {
-      dispose() {},
+      dispose() {
+        const index = state.registeredTreeViews.indexOf(registration);
+
+        if (index >= 0) {
+          state.registeredTreeViews.splice(index, 1);
+        }
+      },
+    };
+  },
+
+  registerWebviewViewProvider(viewId: string, provider: unknown) {
+    const registration = {
+      viewId,
+      provider,
+    };
+
+    state.registeredWebviewViews.push(registration);
+
+    return {
+      dispose() {
+        const index = state.registeredWebviewViews.indexOf(registration);
+
+        if (index >= 0) {
+          state.registeredWebviewViews.splice(index, 1);
+        }
+      },
     };
   },
 };
 
-export function __getCompletionProviders(): CompletionProviderRegistration[] {
-  return [...state.completionProviders];
+export function __getClipboardText(): string {
+  return state.clipboardText;
 }
 
-export function __getInformationMessages(): string[] {
-  return [...state.informationMessages];
+export function __getCompletionProviders(): CompletionProviderRegistration[] {
+  return [...state.completionProviders];
 }
 
 export function __getConfigurationValue(key: string): unknown {
   return state.configuration.get(`codeDictionary.${key}`);
 }
 
+export function __getInformationMessages(): string[] {
+  return [...state.informationMessages];
+}
+
+export function __getOutputMessages(): string[] {
+  return [...state.outputMessages];
+}
+
 export function __getQuickPickCalls(): Array<{ items: any[]; options: unknown }> {
   return [...state.quickPickCalls];
+}
+
+export function __getRegisteredCommands(): string[] {
+  return [...state.commands.keys()].sort();
+}
+
+export function __getRegisteredTreeViews(): RegisteredTreeView[] {
+  return [...state.registeredTreeViews];
+}
+
+export function __getRegisteredWebviewViews(): RegisteredWebviewView[] {
+  return [...state.registeredWebviewViews];
 }
 
 export function __getWarningMessages(): string[] {
@@ -218,10 +354,14 @@ export function __getWarningMessages(): string[] {
 }
 
 export function __reset(): void {
+  state.clipboardText = '';
   state.commands.clear();
   state.completionProviders = [];
   state.configuration.clear();
   state.informationMessages = [];
+  state.outputMessages = [];
+  state.registeredTreeViews = [];
+  state.registeredWebviewViews = [];
   state.quickPickCalls = [];
   state.quickPickHandler = undefined;
   state.quickPickResult = undefined;

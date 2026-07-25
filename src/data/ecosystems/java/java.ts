@@ -11,7 +11,7 @@ export const JAVA_CATALOG: LanguageCatalog = {
       description: 'Create a Java main entry point.',
       snippet: `public class \${1:Main} {
     public static void main(String[] args) {
-        \${2:System.out.println("Hello, world!");}
+        \${2:\${TM_SELECTED_TEXT:System.out.println("Hello, world!");}}
     }
 }
 \$0`,
@@ -103,6 +103,7 @@ export const JAVA_CATALOG: LanguageCatalog = {
       description: 'Loop through a list with an indexed for-loop.',
       snippet: `for (int \${1:i} = 0; \${1} < \${2:items}.size(); \${1}++) {
     \${3:Object} \${4:item} = \${2}.get(\${1});
+    \${5:\${TM_SELECTED_TEXT:// ...}}
 }
 \$0`,
     },
@@ -110,7 +111,7 @@ export const JAVA_CATALOG: LanguageCatalog = {
       keyword: 'foreach',
       description: 'Loop through a collection with an enhanced for-loop.',
       snippet: `for (\${1:String} \${2:item} : \${3:items}) {
-    System.out.println(\${2});
+    \${4:\${TM_SELECTED_TEXT:System.out.println(item);}}
 }
 \$0`,
     },

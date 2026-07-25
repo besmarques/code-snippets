@@ -149,3 +149,29 @@ test('listEntries includes ecosystem snippets from split catalog files', () => {
   assert.equal(entriesById.get('query.jdbc.java')?.ecosystem, 'jdbc');
   assert.equal(entriesById.get('model.eloquent.php')?.ecosystem, 'eloquent');
 });
+
+test('wrapper snippets support selected-text composition without forcing a default body', () => {
+  const jsFunction = resolveEntryFromTrigger({
+    raw: '>function.js',
+    keyword: 'function',
+    language: 'js',
+  });
+  const javaLoop = resolveEntryFromTrigger({
+    raw: '>loop.java',
+    keyword: 'loop',
+    language: 'java',
+  });
+  const phpFunction = resolveEntryFromTrigger({
+    raw: '>function.php',
+    keyword: 'function',
+    language: 'php',
+  });
+
+  assert.ok(jsFunction);
+  assert.ok(javaLoop);
+  assert.ok(phpFunction);
+  assert.match(jsFunction.snippet, /\$\{1:\\?\$\{TM_SELECTED_TEXT\}\}/);
+  assert.doesNotMatch(jsFunction.snippet, /return value;/);
+  assert.match(javaLoop.snippet, /TM_SELECTED_TEXT/);
+  assert.match(phpFunction.snippet, /TM_SELECTED_TEXT/);
+});

@@ -1,4 +1,4 @@
-# Code Dictionary
+﻿# Code Dictionary
 
 Code Dictionary is a VS Code extension that expands short ids into code snippets across core languages and built-in package ecosystems.
 
@@ -99,6 +99,29 @@ Examples:
 - `>post.express.js`
 - `post.express.js`
 
+### Composing Entries
+
+There are two supported ways to make entries work together:
+
+1. nested expansion
+2. wrapping existing code
+
+Nested expansion:
+
+- expand a wrapper entry such as `>function.js`
+- the first cursor stop is the wrapper body
+- type another trigger inside its body, such as `>map.js`
+- expand that trigger again with completion or `Code Dictionary: Expand Trigger at Cursor`
+
+Wrapping existing code:
+
+- expand an inner entry first, such as `>map.js`
+- select the generated code
+- expand a wrapper entry such as `>function.js`
+
+Wrapper-style entries now use `TM_SELECTED_TEXT`, so the selected code is inserted into the wrapper body when that pattern is used.
+Core JS and TS function wrappers no longer inject a default `return` line.
+
 ### Translate Selection
 
 Select any of these and run `Code Dictionary: Translate Selection`:
@@ -116,8 +139,13 @@ After `F5`, open the `Code Dictionary` icon in the Activity Bar.
 The sidebar gives you:
 
 - command shortcuts
+- searchable catalog actions for insert and trigger-copy flows
 - a catalog grouped by language and package
+- direct click-to-insert on catalog entries
+- right-click trigger-copy actions on catalog entries
 - an `Add Custom Entry` form
+- edit and delete actions for existing custom entries
+- a quick action to open the relevant settings JSON
 
 ## User Configuration
 
@@ -240,3 +268,6 @@ The extension is structured to run in desktop, remote, and web-capable VS Code e
 - `main` points to the Node bundle
 - `browser` points to the web bundle
 - runtime editor logic avoids Node-only APIs
+
+
+

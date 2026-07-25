@@ -1,13 +1,27 @@
 import * as vscode from 'vscode';
 
+import { ALL_ENTRIES } from '../data';
 import { getBuiltInEcosystemOptionsByLanguage } from '../core/builtInEcosystems';
 import { getEcosystemLabel, getLanguageLabel } from '../core/ecosystems';
-import { formatEntryId, formatEntrySummary } from '../core/registry';
-import { getCustomEntries, saveCustomEntry } from '../core/settings';
-import { TRIGGER_LANGUAGE_KEYS, type TriggerLanguageKey } from '../types';
+import { formatEntryId, formatEntryKey, formatEntrySummary } from '../core/registry';
+import { deleteCustomEntry, getCustomEntries, saveCustomEntry } from '../core/settings';
+import { TRIGGER_LANGUAGE_KEYS, type DictionaryEntry, type TriggerLanguageKey } from '../types';
 
-const VIEW_ID = 'codeDictionary.customEntryForm';
+const VIEW_ID = 'codeDictionary.customEntries';
 const LANGUAGE_OPTIONS = TRIGGER_LANGUAGE_KEYS;
+const BUILT_IN_ENTRY_KEYS = new Set(ALL_ENTRIES.map((entry) => formatEntryKey(entry)));
+
+interface CustomEntryListItem {
+  description: string;
+  ecosystem: string;
+  id: string;
+  keyword: string;
+  language: TriggerLanguageKey;
+  overridesBuiltIn: boolean;
+  snippet: string;
+  summary: string;
+  trigger: string;
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -18,22 +32,65 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+function toWebviewJson(value: unknown): string {
+  return JSON.stringify(value)
+    .replaceAll('<', '\\u003c')
+    .replaceAll('>', '\\u003e')
+    .replaceAll('&', '\\u0026')
+    .replaceAll('\u2028', '\\u2028')
+    .replaceAll('\u2029', '\\u2029');
+}
+
 function getNonce(): string {
   return Math.random().toString(36).slice(2, 12);
 }
 
-function buildEntryListMarkup(): string {
-  const entries = getCustomEntries();
+function buildCustomEntryListItems(): CustomEntryListItem[] {
+  return getCustomEntries()
+    .map((entry) => {
+      const id = formatEntryKey(entry);
 
-  if (!entries.length) {
+      return {
+        id,
+        trigger: formatEntryId(entry),
+        keyword: entry.keyword,
+        language: entry.language,
+        ecosystem: entry.ecosystem,
+        description: entry.description,
+        snippet: entry.snippet,
+        summary: formatEntrySummary(entry),
+        overridesBuiltIn: BUILT_IN_ENTRY_KEYS.has(id),
+      };
+    })
+    .sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function buildEntryListMarkup(items: readonly CustomEntryListItem[]): string {
+  if (!items.length) {
     return '<p class="empty-state">No custom entries yet.</p>';
   }
 
   return [
-    '<ul class="entry-list">',
-    ...entries.map((entry) => (
-      `<li><code>${escapeHtml(formatEntryId(entry))}</code><span>${escapeHtml(formatEntrySummary(entry))}</span><span>${escapeHtml(entry.description)}</span></li>`
-    )),
+    '<ul id="custom-entry-list" class="entry-list">',
+    ...items.map((item) => {
+      const overrideLabel = item.overridesBuiltIn ? 'Overrides built-in' : 'Custom only';
+      const badgeClassName = item.overridesBuiltIn ? 'badge warning' : 'badge muted';
+
+      return [
+        '<li>',
+        '<div class="entry-header">',
+        `<code>${escapeHtml(item.trigger)}</code>`,
+        `<span class="${badgeClassName}">${escapeHtml(overrideLabel)}</span>`,
+        '</div>',
+        `<span class="entry-summary">${escapeHtml(item.summary)}</span>`,
+        `<span>${escapeHtml(item.description)}</span>`,
+        '<div class="entry-actions">',
+        `<button type="button" class="secondary-button" data-action="edit" data-entry-id="${escapeHtml(item.id)}">Edit</button>`,
+        `<button type="button" class="danger-button" data-action="delete" data-entry-id="${escapeHtml(item.id)}">Delete</button>`,
+        '</div>',
+        '</li>',
+      ].join('');
+    }),
     '</ul>',
   ].join('');
 }
@@ -41,6 +98,7 @@ function buildEntryListMarkup(): string {
 function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error' | 'success'; text: string }): string {
   const nonce = getNonce();
   const ecosystemsByLanguage = getBuiltInEcosystemOptionsByLanguage();
+  const customEntries = buildCustomEntryListItems();
   const defaultLanguage = LANGUAGE_OPTIONS[0];
   const defaultPackage = getDefaultPackageId(defaultLanguage, ecosystemsByLanguage);
   const statusMarkup = statusMessage
@@ -123,11 +181,29 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       color: var(--vscode-button-foreground);
       padding: 9px 14px;
       cursor: pointer;
-      justify-self: start;
     }
 
     button:hover {
       background: var(--vscode-button-hoverBackground);
+    }
+
+    .secondary-button {
+      background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+      color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+    }
+
+    .secondary-button:hover {
+      background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
+    }
+
+    .danger-button {
+      background: transparent;
+      color: var(--vscode-errorForeground);
+      border: 1px solid color-mix(in srgb, var(--vscode-errorForeground) 35%, transparent);
+    }
+
+    .danger-button:hover {
+      background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
     }
 
     .help {
@@ -142,6 +218,18 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
     .field-group[hidden] {
       display: none;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .editing-state {
+      min-height: 18px;
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
     }
 
     .status {
@@ -170,11 +258,51 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
     .entry-list li {
       display: grid;
-      gap: 4px;
+      gap: 6px;
       padding: 10px 12px;
       border: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
       border-radius: 8px;
       background: color-mix(in srgb, var(--vscode-editor-background) 55%, transparent);
+    }
+
+    .entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .entry-summary {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .badge.warning {
+      background: color-mix(in srgb, var(--vscode-editorWarning-foreground) 14%, transparent);
+      color: var(--vscode-editorWarning-foreground);
+    }
+
+    .badge.muted {
+      background: color-mix(in srgb, var(--vscode-descriptionForeground) 12%, transparent);
+      color: var(--vscode-descriptionForeground);
     }
 
     code {
@@ -205,6 +333,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
     </section>
     ${statusMarkup}
     <form id="custom-entry-form">
+      <input id="previous-entry-id" name="previousEntryId" type="hidden" value="" />
       <label>
         Entry Type
         <select id="entry-type" name="entryType">
@@ -243,13 +372,18 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
         <span class="help">Generated Id</span>
         <code id="entry-id-preview">&gt;slugify.js</code>
       </div>
-      <button type="submit">Save Custom Entry</button>
+      <div id="editing-state" class="editing-state"></div>
+      <div class="button-row">
+        <button id="submit-button" type="submit">Save Custom Entry</button>
+        <button id="cancel-edit" type="button" class="secondary-button" hidden>Cancel Edit</button>
+        <button id="open-settings" type="button" class="secondary-button">Open Settings JSON</button>
+      </div>
       <p id="ecosystem-help" class="help">${buildPackageHelp(defaultLanguage, ecosystemsByLanguage)}</p>
       <p class="help">Package entries only target package files that already exist in the built-in catalog. Use <code>post</code> plus <code>express</code>, not <code>expresspost</code>. If a custom entry uses the same trigger id as a built-in one, the custom entry overrides it.</p>
     </form>
     <section>
       <h3>Current Custom Entries</h3>
-      ${buildEntryListMarkup()}
+      ${buildEntryListMarkup(customEntries)}
     </section>
   </div>
   <script nonce="${nonce}">
@@ -258,16 +392,35 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
     const entryTypeInput = document.getElementById('entry-type');
     const keywordInput = document.getElementById('keyword');
     const languageInput = document.getElementById('language');
+    const descriptionInput = document.getElementById('description');
+    const snippetInput = document.getElementById('snippet');
+    const previousEntryIdInput = document.getElementById('previous-entry-id');
     const ecosystemField = document.getElementById('ecosystem-field');
     const ecosystemSelect = document.getElementById('ecosystem-select');
     const ecosystemInput = document.getElementById('ecosystem');
     const ecosystemHelp = document.getElementById('ecosystem-help');
     const entryIdPreview = document.getElementById('entry-id-preview');
-    const ecosystemsByLanguage = ${JSON.stringify(ecosystemsByLanguage)};
+    const editingState = document.getElementById('editing-state');
+    const submitButton = document.getElementById('submit-button');
+    const cancelEditButton = document.getElementById('cancel-edit');
+    const openSettingsButton = document.getElementById('open-settings');
+    const entryList = document.getElementById('custom-entry-list');
+    const ecosystemsByLanguage = ${toWebviewJson(ecosystemsByLanguage)};
+    const customEntries = ${toWebviewJson(customEntries)};
 
     function getDefaultPackage(language) {
       const options = ecosystemsByLanguage[language] ?? [];
       return options.find((option) => option.id !== 'core')?.id ?? '';
+    }
+
+    function buildPackageHelpText(language) {
+      const options = (ecosystemsByLanguage[language] ?? []).filter((option) => option.id !== 'core');
+
+      if (!options.length) {
+        return 'No package files exist for ' + language + ' yet. Use a core entry instead.';
+      }
+
+      return 'Common package ids for ' + language + ': ' + options.map((option) => option.id).join(', ');
     }
 
     function renderPackageOptions() {
@@ -275,8 +428,10 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       const options = (ecosystemsByLanguage[language] ?? []).filter((option) => option.id !== 'core');
 
       ecosystemSelect.innerHTML = options
-        .map((option) => \`<option value="\${option.id}">\${option.label}</option>\`)
+        .map((option) => '<option value="' + option.id + '">' + option.label + '</option>')
         .join('');
+
+      ecosystemHelp.textContent = buildPackageHelpText(language);
 
       if (entryTypeInput.value !== 'package') {
         return;
@@ -290,10 +445,6 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
       ecosystemSelect.value = nextPackage;
       ecosystemInput.value = nextPackage;
-
-      ecosystemHelp.textContent = options.length
-        ? 'Common package ids for ' + language + ': ' + options.map((option) => option.id).join(', ')
-        : 'No package files exist for ' + language + ' yet. Use a core entry instead.';
     }
 
     function renderEntryMode() {
@@ -303,11 +454,13 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
       if (!isPackageEntry) {
         ecosystemInput.value = 'core';
+        ecosystemHelp.textContent = 'Core entries use >keyword.language.';
         return;
       }
 
       const defaultPackage = getDefaultPackage(String(languageInput.value || '${defaultLanguage}'));
       ecosystemInput.value = String(ecosystemSelect.value || defaultPackage);
+      ecosystemHelp.textContent = buildPackageHelpText(String(languageInput.value || '${defaultLanguage}'));
     }
 
     function renderEntryIdPreview() {
@@ -319,6 +472,51 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       entryIdPreview.textContent = isPackageEntry
         ? keyword + '.' + ecosystem + '.' + language
         : '>' + keyword + '.' + language;
+    }
+
+    function resetFormState() {
+      entryTypeInput.value = 'core';
+      keywordInput.value = '';
+      languageInput.value = '${defaultLanguage}';
+      descriptionInput.value = '';
+      snippetInput.value = '';
+      previousEntryIdInput.value = '';
+      ecosystemInput.value = 'core';
+      editingState.textContent = '';
+      submitButton.textContent = 'Save Custom Entry';
+      cancelEditButton.hidden = true;
+      renderPackageOptions();
+      renderEntryMode();
+      renderEntryIdPreview();
+    }
+
+    function loadEntryForEditing(entryId) {
+      const entry = customEntries.find((candidate) => candidate.id === entryId);
+
+      if (!entry) {
+        return;
+      }
+
+      entryTypeInput.value = entry.ecosystem === 'core' ? 'core' : 'package';
+      keywordInput.value = entry.keyword;
+      languageInput.value = entry.language;
+      descriptionInput.value = entry.description;
+      snippetInput.value = entry.snippet;
+      previousEntryIdInput.value = entry.id;
+      ecosystemInput.value = entry.ecosystem;
+      renderPackageOptions();
+
+      if (entry.ecosystem !== 'core') {
+        ecosystemSelect.value = entry.ecosystem;
+        ecosystemInput.value = entry.ecosystem;
+      }
+
+      renderEntryMode();
+      renderEntryIdPreview();
+      editingState.textContent = 'Editing ' + entry.trigger;
+      submitButton.textContent = 'Update Custom Entry';
+      cancelEditButton.hidden = false;
+      keywordInput.focus();
     }
 
     languageInput.addEventListener('change', () => {
@@ -349,9 +547,44 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
     keywordInput.addEventListener('input', renderEntryIdPreview);
 
-    renderPackageOptions();
-    renderEntryMode();
-    renderEntryIdPreview();
+    cancelEditButton.addEventListener('click', () => {
+      resetFormState();
+    });
+
+    openSettingsButton.addEventListener('click', () => {
+      vscode.postMessage({ type: 'openCustomEntrySettings' });
+    });
+
+    if (entryList) {
+      entryList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action][data-entry-id]');
+
+        if (!button) {
+          return;
+        }
+
+        const action = String(button.getAttribute('data-action') || '');
+        const entryId = String(button.getAttribute('data-entry-id') || '');
+
+        if (!entryId) {
+          return;
+        }
+
+        if (action === 'edit') {
+          loadEntryForEditing(entryId);
+          return;
+        }
+
+        if (action === 'delete') {
+          vscode.postMessage({
+            type: 'deleteCustomEntry',
+            value: {
+              entryId,
+            },
+          });
+        }
+      });
+    }
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -369,9 +602,12 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
             : 'core',
           description: String(formData.get('description') ?? ''),
           snippet: String(formData.get('snippet') ?? ''),
+          previousEntryId: String(formData.get('previousEntryId') ?? ''),
         },
       });
     });
+
+    resetFormState();
   </script>
 </body>
 </html>`;
@@ -408,50 +644,110 @@ function buildPackageOptionMarkup(
     .join('');
 }
 
+async function openCustomEntrySettings(): Promise<'global' | 'workspace'> {
+  if ((vscode.workspace.workspaceFolders?.length ?? 0) > 0) {
+    await vscode.commands.executeCommand('workbench.action.openWorkspaceSettingsFile');
+    return 'workspace';
+  }
+
+  await vscode.commands.executeCommand('workbench.action.openSettingsJson');
+  return 'global';
+}
+
 class CustomEntryFormProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
-
   resolveWebviewView(webviewView: vscode.WebviewView): void | Thenable<void> {
     this.view = webviewView;
+    webviewView.onDidDispose(() => {
+      if (this.view === webviewView) {
+        this.view = undefined;
+      }
+    });
     webviewView.webview.options = {
       enableScripts: true,
     };
     webviewView.webview.html = getWebviewHtml(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
-      if (!message || typeof message !== 'object' || message.type !== 'saveCustomEntry') {
+      if (!message || typeof message !== 'object') {
         return;
       }
 
-      const result = await saveCustomEntry(message.value);
+      if (message.type === 'saveCustomEntry') {
+        const result = await saveCustomEntry(message.value);
 
-      if (!result) {
-        const errorMessage = 'The custom entry is invalid. Use lowercase keywords, a supported language, and either core or an existing package for that language.';
-        void vscode.window.showWarningMessage(errorMessage);
-        this.refresh('error', errorMessage);
+        if (!result) {
+          const errorMessage = 'The custom entry is invalid. Use lowercase keywords, a supported language, and either core or an existing package for that language.';
+          void vscode.window.showWarningMessage(errorMessage);
+          this.refresh('error', errorMessage);
+          return;
+        }
+
+        const infoMessage = `${result.mode === 'created' ? 'Added' : 'Updated'} ${formatEntryId(result.entry)} (${getEcosystemLabel(result.entry.ecosystem)}) in ${result.target} settings.`;
+        void vscode.window.showInformationMessage(infoMessage);
+        this.refresh('success', infoMessage);
         return;
       }
 
-      const infoMessage = `${result.mode === 'created' ? 'Added' : 'Updated'} ${formatEntryId(result.entry)} (${getEcosystemLabel(result.entry.ecosystem)}) in ${result.target} settings.`;
-      void vscode.window.showInformationMessage(infoMessage);
-      this.refresh('success', infoMessage);
+      if (message.type === 'deleteCustomEntry') {
+        const entryId = (message as { value?: { entryId?: string } }).value?.entryId;
+        const entry = getCustomEntries().find((candidate) => formatEntryKey(candidate) === String(entryId ?? ''));
+
+        if (!entry) {
+          const errorMessage = 'The custom entry could not be deleted because it no longer exists in settings.';
+          void vscode.window.showWarningMessage(errorMessage);
+          this.refresh('error', errorMessage);
+          return;
+        }
+
+        const confirmed = await vscode.window.showWarningMessage(
+          `Delete ${formatEntryId(entry)}?`,
+          { modal: true },
+          'Delete',
+        );
+
+        if (confirmed !== 'Delete') {
+          return;
+        }
+
+        const result = await deleteCustomEntry(entryId);
+
+        if (!result) {
+          const errorMessage = 'The custom entry could not be deleted because it no longer exists in settings.';
+          void vscode.window.showWarningMessage(errorMessage);
+          this.refresh('error', errorMessage);
+          return;
+        }
+
+        const infoMessage = `Deleted ${formatEntryId(result.entry)} from ${result.target} settings.`;
+        void vscode.window.showInformationMessage(infoMessage);
+        this.refresh('success', infoMessage);
+        return;
+      }
+
+      if (message.type === 'openCustomEntrySettings') {
+        const target = await openCustomEntrySettings();
+        void vscode.window.showInformationMessage(`Opened ${target} settings JSON. Look for codeDictionary.customEntries.`);
+      }
     });
   }
 
   private refresh(kind: 'error' | 'success', text: string): void {
-    if (!this.view) {
-      return;
+    if (this.view) {
+      this.view.webview.html = getWebviewHtml(this.view.webview, { kind, text });
     }
-
-    this.view.webview.html = getWebviewHtml(this.view.webview, { kind, text });
   }
 }
 
 export function registerCustomEntryFormProvider(context: vscode.ExtensionContext): void {
-  const provider = new CustomEntryFormProvider(context);
+  const provider = new CustomEntryFormProvider();
   const registration = vscode.window.registerWebviewViewProvider(VIEW_ID, provider);
 
   context.subscriptions.push(registration);
 }
+
+
+
+
+

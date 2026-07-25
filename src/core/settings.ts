@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+﻿import * as vscode from 'vscode';
 
 import { isBuiltInEcosystemForLanguage } from './builtInEcosystems';
 import { DEFAULT_ECOSYSTEM, getEntryEcosystem, normalizeEcosystem } from './ecosystems';
@@ -23,12 +23,18 @@ export interface CustomEntryDraft {
   ecosystem: string;
   keyword: string;
   language: TriggerLanguageKey;
+  previousEntryId?: string;
   snippet: string;
 }
 
 export interface SaveCustomEntryResult {
   entry: DictionaryEntry;
   mode: 'created' | 'updated';
+  target: 'global' | 'workspace';
+}
+
+export interface DeleteCustomEntryResult {
+  entry: DictionaryEntry;
   target: 'global' | 'workspace';
 }
 
@@ -127,7 +133,7 @@ function parseCustomEntryCandidate(value: unknown): DictionaryEntry | undefined 
   };
 }
 
-function serializeCustomEntry(entry: DictionaryEntry): CustomEntryDraft {
+function serializeCustomEntry(entry: DictionaryEntry): Omit<CustomEntryDraft, 'previousEntryId'> {
   return {
     keyword: entry.keyword,
     ecosystem: getEntryEcosystem(entry.ecosystem),
@@ -152,6 +158,10 @@ function getConfigurationTarget(): {
     label: 'global',
     value: vscode.ConfigurationTarget.Global,
   };
+}
+
+function findCustomEntryIndex(entries: readonly DictionaryEntry[], entryId: string): number {
+  return entries.findIndex((entry) => formatEntryKey(entry) === entryId);
 }
 
 export function getDisabledEntryIds(): Set<string> {
@@ -201,10 +211,20 @@ export async function saveCustomEntry(value: unknown): Promise<SaveCustomEntryRe
     return undefined;
   }
 
+  const candidate = value as Record<string, unknown>;
+  const previousEntryId = normalizeEntryId(candidate.previousEntryId);
   const currentEntries = getCustomEntries();
   const entryId = formatEntryKey(entry);
-  const existingEntryIndex = currentEntries.findIndex((candidate) => formatEntryKey(candidate) === entryId);
   const nextEntries = [...currentEntries];
+  const previousEntryIndex = previousEntryId
+    ? findCustomEntryIndex(nextEntries, previousEntryId)
+    : -1;
+
+  if (previousEntryIndex >= 0 && previousEntryId !== entryId) {
+    nextEntries.splice(previousEntryIndex, 1);
+  }
+
+  const existingEntryIndex = findCustomEntryIndex(nextEntries, entryId);
 
   if (existingEntryIndex >= 0) {
     nextEntries[existingEntryIndex] = entry;
@@ -222,7 +242,37 @@ export async function saveCustomEntry(value: unknown): Promise<SaveCustomEntryRe
 
   return {
     entry,
-    mode: existingEntryIndex >= 0 ? 'updated' : 'created',
+    mode: existingEntryIndex >= 0 || previousEntryIndex >= 0 ? 'updated' : 'created',
+    target: target.label,
+  };
+}
+
+export async function deleteCustomEntry(value: unknown): Promise<DeleteCustomEntryResult | undefined> {
+  const entryId = normalizeEntryId(value);
+
+  if (!entryId) {
+    return undefined;
+  }
+
+  const currentEntries = getCustomEntries();
+  const existingEntryIndex = findCustomEntryIndex(currentEntries, entryId);
+
+  if (existingEntryIndex < 0) {
+    return undefined;
+  }
+
+  const nextEntries = [...currentEntries];
+  const [entry] = nextEntries.splice(existingEntryIndex, 1);
+  const target = getConfigurationTarget();
+
+  await getConfiguration().update(
+    'customEntries',
+    nextEntries.map(serializeCustomEntry),
+    target.value,
+  );
+
+  return {
+    entry,
     target: target.label,
   };
 }

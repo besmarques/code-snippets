@@ -1,4 +1,4 @@
-{
+﻿{
   "version": "0.2.0",
   "configurations": [
     {
@@ -6,12 +6,14 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--user-data-dir=${workspaceFolder}/.vscode-test/user-data",
+        "${workspaceFolder}"
       ],
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
       ],
-      "preLaunchTask": "build extension"
+      "preLaunchTask": "prepare extension host"
     }
   ]
 }

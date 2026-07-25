@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
@@ -7,7 +7,7 @@ import {
   __setConfigurationValue,
   __setWorkspaceFolders,
 } from './support/vscode';
-import { getCustomEntries, saveCustomEntry } from '../src/core/settings';
+import { deleteCustomEntry, getCustomEntries, saveCustomEntry } from '../src/core/settings';
 
 test('saveCustomEntry appends a new custom entry to settings', async () => {
   __reset();
@@ -59,6 +59,36 @@ test('saveCustomEntry updates an existing custom entry with the same trigger id'
   assert.equal(entries[0]?.description, 'New description.');
   assert.equal(entries[0]?.ecosystem, 'core');
   assert.equal(entries[0]?.snippet, 'const after = true;\n$0');
+});
+
+test('saveCustomEntry renames an edited custom entry when previousEntryId is provided', async () => {
+  __reset();
+  __setConfigurationValue('customEntries', [
+    {
+      ecosystem: 'core',
+      keyword: 'slugify',
+      language: 'js',
+      description: 'Original description.',
+      snippet: 'const slug = true;\n$0',
+    },
+  ]);
+
+  const result = await saveCustomEntry({
+    previousEntryId: '>slugify.js',
+    ecosystem: 'core',
+    keyword: 'slugger',
+    language: 'js',
+    description: 'Renamed description.',
+    snippet: 'const slugger = true;\n$0',
+  });
+
+  assert.ok(result);
+  assert.equal(result.mode, 'updated');
+
+  const entries = getCustomEntries();
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0]?.keyword, 'slugger');
+  assert.equal(entries[0]?.description, 'Renamed description.');
 });
 
 test('saveCustomEntry keeps different ecosystems as separate ids', async () => {
@@ -125,6 +155,33 @@ test('saveCustomEntry rejects package ids that do not exist for the selected lan
 
   assert.equal(unknownPackage, undefined);
   assert.equal(wrongLanguagePackage, undefined);
+});
+
+test('deleteCustomEntry removes an existing custom entry', async () => {
+  __reset();
+  __setConfigurationValue('customEntries', [
+    {
+      ecosystem: 'core',
+      keyword: 'slugify',
+      language: 'js',
+      description: 'Convert text into a URL slug.',
+      snippet: "const slug = input.toLowerCase().replace(/\\s+/g, '-');\n$0",
+    },
+  ]);
+
+  const result = await deleteCustomEntry('>slugify.js');
+
+  assert.ok(result);
+  assert.equal(result.entry.keyword, 'slugify');
+  assert.equal(getCustomEntries().length, 0);
+});
+
+test('deleteCustomEntry ignores unknown ids', async () => {
+  __reset();
+
+  const result = await deleteCustomEntry('>missing.js');
+
+  assert.equal(result, undefined);
 });
 
 test('getCustomEntries defaults legacy custom entries to the core ecosystem', () => {

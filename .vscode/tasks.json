@@ -1,11 +1,38 @@
-{
+﻿{
   "version": "2.0.0",
   "tasks": [
+    {
+      "label": "reset extension host state",
+      "type": "process",
+      "command": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\reset-extension-host-state.ps1",
+        "-WorkspaceRoot",
+        "${workspaceFolder}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
     {
       "label": "build extension",
       "type": "shell",
       "command": "npm run build:dev",
       "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare extension host",
+      "dependsOn": [
+        "reset extension host state",
+        "build extension"
+      ],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {

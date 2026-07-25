@@ -14,7 +14,7 @@ export const REACT_CATALOG: LanguageCatalog = {
       snippet: `export function \${1:ExampleComponent}() {
   return (
     <\${2:section}>
-      \${3:Content}
+      \${3:\${TM_SELECTED_TEXT:Content}}
     </\${2}>
   );
 }
@@ -83,7 +83,7 @@ return (
       description: 'Create a reusable React event handler.',
       snippet: `function \${1:handleSubmit}(\${2:event}) {
   \${2}.preventDefault();
-  \${3}
+  \${3:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },
@@ -117,12 +117,12 @@ function \${3:handleChange}(\${4:event}) {
       description: 'Handle form submission in a React component.',
       snippet: `function \${1:handleSubmit}(\${2:event}) {
   \${2}.preventDefault();
-  \${3}
+  \${3:\${TM_SELECTED_TEXT}}
 }
 
 return (
   <form onSubmit={\${1}}>
-    \${4}
+    \${4:\${TM_SELECTED_TEXT}}
   </form>
 );
 \$0`,
@@ -132,7 +132,7 @@ return (
       description: 'Create a React 19-style form with an action prop.',
       snippet: `async function \${1:submitAction}(\${2:formData}) {
   const \${3:value} = \${2}.get('\${4:name}');
-  \${5}
+  \${5:\${TM_SELECTED_TEXT}}
 }
 
 return (
@@ -220,7 +220,7 @@ export const \${1:ThemeContext} = createContext(\${2:null});
       keyword: 'useeffect',
       description: 'Run side effects with cleanup using useEffect.',
       snippet: `useEffect(() => {
-  \${1}
+  \${1:\${TM_SELECTED_TEXT}}
 
   return () => {
     \${2}

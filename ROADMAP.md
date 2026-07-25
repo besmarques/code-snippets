@@ -1,231 +1,301 @@
-# Code Dictionary Roadmap
+﻿# Code Dictionary Roadmap
 
 ## Purpose
 
-This roadmap should answer three things clearly:
+This roadmap should reflect the actual codebase on Saturday, July 25, 2026:
 
-1. what the extension already does
-2. what still needs work
-3. what order makes the most sense next
+1. what is already working
+2. what is still missing
+3. what should be done next
 
-## Product Direction
+## Current Baseline
 
-Code Dictionary is a VS Code extension that expands short ids into code snippets across core languages and built-in package ecosystems.
+Code Dictionary already has a solid functional base.
 
-Current id model:
+Implemented:
 
-- core entries: `>keyword.language`
-- package entries: `keyword.package.language`
-
-Examples:
-
-- `>map.js`
-- `>map.react`
-- `post.express.js`
-- `findmany.prisma.ts`
-- `card.tailwind.react`
-
-Current data structure:
-
-```text
-src/data/ecosystems/<language>/
-  <language>.ts
-  packages/
-    <package>.ts
-```
-
-## Completed
-
-These foundations are already in place:
-
-- core and package id parsing
-- canonical language suffixes: `js`, `ts`, `react`, `html`, `css`, `java`, `php`
-- canonical keyword rules, including package-local keyword naming
-- built-in catalogs for JavaScript, TypeScript, React, HTML, CSS, Java, and PHP
-- package catalogs split by language under `src/data/ecosystems/<language>/packages`
-- completion provider with `>`-gated suggestions
-- language-only completion filtering such as `>.js`
-- exact entry resolution for both core and package ids
-- `translateSelection` support for exact ids, keyword-language ids, keywords, and inferred code patterns
-- sidebar catalog and command shortcuts
-- sidebar custom-entry form
-- custom entries and disabled built-ins in `settings.json`
+- canonical id model
+  - core entries: `>keyword.language`
+  - package entries: `keyword.package.language`
+- supported trigger suffixes: `js`, `ts`, `react`, `html`, `css`, `java`, `php`
+- split catalog structure under `src/data/ecosystems/<language>/packages`
+- completion provider gated by `>`
+- language-only filtering such as `>.js`
+- direct trigger expansion
+- selection translation from:
+  - exact ids
+  - triggerless ids such as `map.java`
+  - plain keywords such as `map`
+  - inferred code patterns such as `items.map(...)`
+- sidebar catalog grouped by language and ecosystem
+- sidebar webview for adding custom entries
+- custom entries and disabled built-ins stored in settings
 - restriction that custom entries can only target `core` or an existing built-in package for that language
-- validation for catalog structure and duplicate trigger ids
-- test suite for parser, registry, completion, inference, and command flows
-- browser and desktop bundle targets
-- cleaned and aligned documentation across user and contributor docs
+- catalog validation and logic-level tests
+- browser and desktop bundles
+- wrapper snippet composition support using `TM_SELECTED_TEXT`
 
-## Current Constraints
+Current catalog footprint:
 
-These are deliberate and should remain explicit:
+- JavaScript: 54 entries
+- React: 40 entries
+- TypeScript: 26 entries
+- Java: 21 entries
+- PHP: 18 entries
+- HTML: 9 entries
+- CSS: 9 entries
 
-- completion only opens after `>`
-- alias suffixes such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected
-- custom entries can target `core` or an existing built-in package for that language only
-- the sidebar form does not create new source files or new package catalogs
-- built-in package files are still maintained in source, not through the UI
+Current built-in package files:
 
-## What Needs Improvement
+- JavaScript: 5
+- TypeScript: 5
+- React: 4
+- HTML: 2
+- CSS: 2
+- Java: 2
+- PHP: 2
 
-The project is functional, but there are still clear gaps.
+Current validation state:
 
-### 1. Custom Entry Management
+- `npm test` passes
+- `npm run build:dev` passes
+- `tsc --noEmit` passes
 
-Why it matters:
+## Confirmed Gaps In The Current Codebase
 
-- users can add and override entries, but managing them is still rough
+These are not guesses. They are visible in the current source.
 
-Needed work:
+### 1. Custom Entry Maintenance Is Still Incomplete
 
-- add delete support for custom entries from the sidebar
-- add edit/load-existing-entry support in the sidebar form
-- show whether an entry overrides a built-in entry
-- add a quick action to open the exact `settings.json` location if needed
+What exists:
 
-### 2. Catalog Coverage Expansion
+- the sidebar form can create and update a custom entry
+- the webview lists current custom entries
 
-Why it matters:
+What is missing:
 
-- the structure is strong enough now that snippet breadth is the main value driver
+- no edit button to load an existing custom entry back into the form
+- no delete action for custom entries
+- no override badge showing that a custom entry replaces a built-in entry
+- no quick action to open the relevant `settings.json` location
 
-Needed work:
+### 2. Sidebar Catalog Is Browse-Only
 
-- review weak areas by language
-- expand built-in package coverage where the current ecosystem list is thin
-- keep package-local keywords clean and non-redundant
-- decide which ecosystems are important enough to include by default
+What exists:
 
-High-value likely candidates:
+- language grouping
+- ecosystem grouping
+- entry listing
 
-- JavaScript: more server/runtime packages
-- TypeScript: more validation, ORM, and API patterns
-- React: more UI/data-fetch/form patterns
-- Java: more framework-level patterns if the project wants them
-- PHP: more framework/database/http patterns if the project wants them
+What is missing:
 
-### 3. Contributor Workflow For Built-In Packages
+- clicking an entry does not insert it
+- there is no copy-trigger action
+- there is no search or filter inside the sidebar
+- there is no richer preview beyond tooltip text
 
-Why it matters:
+### 3. Expansion UX Still Depends Too Much On VS Code Defaults
 
-- contributors still need to understand the file layout manually before adding source entries
+What exists:
 
-Needed work:
+- completion suggestions
+- explicit `Expand Trigger at Cursor`
+- wrapper snippets that can accept selected code
 
-- add a documented checklist for creating a new built-in package file
-- validate that package files are imported into the matching language root file
-- consider a small contributor script for listing built-in packages by language
+What is missing:
 
-### 4. Better Sidebar Discovery
+- no dedicated keybinding for expansion
+- no clearer compose/expand workflow in the command surface
+- nested wrapper flows still depend on how VS Code accepts completion items with `Enter` or `Tab`
 
-Why it matters:
+### 4. Catalog Coverage Is Uneven
 
-- the catalog is growing, so browsing needs to stay fast
+The catalog is already decent in `js`, `react`, and `ts`.
 
-Needed work:
+The thinner areas are:
 
-- consider a search box or filtered quick action for entries
-- consider showing snippet previews or more helpful descriptions in the sidebar
-- consider better grouping labels for large languages with many package files
+- `html`
+- `css`
+- `java` package coverage
+- `php` package coverage
 
-### 5. Stronger End-To-End Testing
+There is still room for more high-value package ecosystems in:
 
-Why it matters:
+- JavaScript server/runtime work
+- TypeScript API, validation, and ORM patterns
+- React forms, state, data, and design-system patterns
 
-- the current tests are good at logic-level coverage, but still stub VS Code heavily
+### 5. Contributor Workflow Is Still Mostly Manual
 
-Needed work:
+What exists:
 
-- add real extension-host smoke tests for:
-  - activation
-  - completion registration
-  - sidebar registration
-  - settings-driven custom entries
-- add one packaging/install smoke test before publishing
+- file layout is documented
+- naming rules are documented
+- catalog validation catches malformed entries and duplicates
 
-### 6. Release And Packaging
+What is missing:
 
-Why it matters:
+- no contributor script to list ecosystems and package files by language
+- no contributor helper for adding a new package file
+- no single maintenance checklist focused on source-package additions
 
-- the extension works locally, but release readiness is still incomplete
+### 6. Test Coverage Is Strong At Logic Level But Weak At Real VS Code Level
 
-Needed work:
+What exists:
 
-- review manifest metadata
-- confirm icon and marketplace presentation
-- produce a `.vsix`
+- parser tests
+- registry tests
+- completion tests
+- translation tests
+- settings tests
+- integration-style command tests using stubs
+
+What is missing:
+
+- no real extension-host smoke tests
+- no activation test in a real VS Code host
+- no real webview/sidebar smoke test
+- no packaged install smoke test
+
+### 7. Release Readiness Is Not Finished
+
+What exists:
+
+- manifest basics
+- icon
+- build outputs for node and browser
+
+What is missing:
+
+- no `.vsix` packaging flow
+- no install-from-package test
+- no release checklist
+- no marketplace-ready validation pass
+
+## Next Steps
+
+This section replaces the duplicated old roadmap steps.
+
+### ~~12. Sidebar Custom Entry Maintenance~~
+
+Completed on July 25, 2026.
+
+Delivered:
+
+- edit support from the current custom-entry list
+- delete support from the current custom-entry list
+- override visibility for custom entries that replace built-ins
+- a quick action to open the relevant settings JSON
+
+### ~~13. Sidebar Catalog Actions And Search~~
+
+Completed on July 25, 2026.
+
+Delivered:
+
+- clickable catalog entries that insert snippets into the active editor
+- trigger-copy actions for catalog entries
+- searchable sidebar actions for insert and trigger-copy flows
+- richer entry previews in catalog tooltips
+- more readable default grouping through collapsed catalog sections
+
+### 14. Snippet Expansion UX Polish
+
+Goal:
+
+Reduce friction around expansion and composition.
+
+Tasks:
+
+- add a default keybinding for `codeDictionary.expandAtCursor`
+- document the exact wrapper/composition workflow more clearly
+- review wrapper snippets for consistent body-first behavior
+- make nested expansion feel less dependent on VS Code defaults
+
+Done when:
+
+- users do not need trial and error to understand how to expand or compose snippets
+
+### 15. Catalog Coverage Expansion
+
+Goal:
+
+Increase usefulness without lowering naming quality.
+
+Priority order:
+
+1. HTML and CSS core/package coverage
+2. Java and PHP package coverage
+3. more JavaScript and TypeScript server/data packages
+4. more React package and UI patterns
+
+Rules:
+
+- keep keywords canonical
+- keep package keywords package-local
+- avoid filler snippets
+- prefer high-frequency patterns only
+
+Done when:
+
+- the thin languages stop feeling underpowered compared with `js`, `react`, and `ts`
+
+### 16. Real Extension-Host Smoke Tests
+
+Goal:
+
+Verify that the extension works in a real VS Code runtime, not only in stubs.
+
+Tasks:
+
+- add activation smoke tests
+- add completion registration smoke tests
+- add sidebar registration smoke tests
+- add settings-driven custom-entry smoke tests
+
+Done when:
+
+- the highest-risk runtime wiring is covered outside the stubbed test harness
+
+### 17. Packaging And Release Readiness
+
+Goal:
+
+Make the extension installable outside the dev workspace.
+
+Tasks:
+
+- add `.vsix` packaging flow
 - test install from the packaged artifact
+- review manifest metadata and marketplace presentation
 - add a release checklist
 
-## Recommended Next Order
+Done when:
 
-The best order from here is:
+- the extension can be packaged, installed, and sanity-tested end to end
 
-1. improve custom-entry management
-2. expand built-in catalog coverage
-3. strengthen contributor workflow for built-in package files
-4. improve sidebar discovery
-5. add extension-host smoke tests
-6. package and test a real `.vsix`
-
-## Immediate Next Step
-
-### 12. Custom Entry Management
+### 18. Contributor Tooling
 
 Goal:
 
-Make custom entries maintainable from inside VS Code.
+Make source-catalog maintenance faster and less error-prone.
 
 Tasks:
 
-- support editing an existing custom entry from the sidebar
-- support deleting a custom entry from the sidebar
-- show override state clearly
-- keep the built-in-package restriction intact
+- add a contributor script to list languages, ecosystems, and package files
+- add a tighter checklist for adding new package catalogs
+- consider validation for missing package imports into language root files
 
 Done when:
 
-- users do not need to hand-edit settings for normal custom-entry maintenance
+- adding new built-in package entries is straightforward for someone who did not build the original structure
 
-## After That
+## Not Planned Right Now
 
-### 13. Catalog Coverage Review
+Avoid these until the roadmap above is complete:
 
-Goal:
+- generating source files from the sidebar
+- allowing arbitrary new ecosystems from the UI
+- adding alias trigger formats
+- adding AI generation before the catalog and release flow are stable
 
-Increase snippet usefulness without damaging naming quality.
-
-Tasks:
-
-- review each language for missing high-frequency patterns
-- add entries only where the keyword and package naming remain clean
-- avoid noisy or low-value snippets
-
-Done when:
-
-- the catalog feels intentionally curated rather than just larger
-
-### 14. Release Readiness
-
-Goal:
-
-Prepare the extension for distribution.
-
-Tasks:
-
-- validate metadata and install flow
-- build and test a `.vsix`
-- add a release checklist and versioning discipline
-
-Done when:
-
-- the extension is installable and testable outside the dev workspace
-
-## What Not To Do Yet
-
-Avoid these until custom-entry management and release flow are cleaner:
-
-- generating source package files from the sidebar
-- adding AI generation
-- supporting multiple competing id formats
-- publishing before packaged install testing exists

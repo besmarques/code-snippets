@@ -61,7 +61,7 @@ export const JS_CATALOG: LanguageCatalog = {
       keyword: 'foreach',
       description: 'Iterate over each array item with forEach.',
       snippet: `\${1:items}.forEach((\${2:item}, \${3:index}) => {
-  console.log(\${2}, \${3});
+  \${4:\${TM_SELECTED_TEXT:console.log(item, index);}}
 });
 \$0`,
     },
@@ -83,14 +83,8 @@ const data = await response.json();
     {
       keyword: 'async',
       description: 'Create an async function with basic error handling.',
-      snippet: `async function \${1:loadData}() {
-  try {
-    const \${2:result} = await \${3:fetchData}();
-    return \${2};
-  } catch (\${4:error}) {
-    console.error(\${4});
-    throw \${4};
-  }
+      snippet: `async function \${2:loadData}() {
+  \${1:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },
@@ -156,16 +150,16 @@ const data = await response.json();
     {
       keyword: 'function',
       description: 'Create a named JavaScript function.',
-      snippet: `function \${1:handler}(\${2:value}) {
-  return \${2};
+      snippet: `function \${2:handler}(\${3:value}) {
+  \${1:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },
     {
       keyword: 'arrow',
       description: 'Create an arrow function expression.',
-      snippet: `const \${1:handler} = (\${2:value}) => {
-  return \${2};
+      snippet: `const \${2:handler} = (\${3:value}) => {
+  \${1:\${TM_SELECTED_TEXT}}
 };
 \$0`,
     },
@@ -173,7 +167,7 @@ const data = await response.json();
       keyword: 'loop',
       description: 'Loop through an iterable in JavaScript.',
       snippet: `for (const \${1:item} of \${2:items}) {
-  // ...
+  \${3:\${TM_SELECTED_TEXT:// ...}}
 }
 \$0`,
     },
@@ -184,6 +178,7 @@ const data = await response.json();
 
 while (\${1} < \${2:items}.length) {
   const \${3:item} = \${2}[\${1}];
+  \${4:\${TM_SELECTED_TEXT:// ...}}
   \${1} += 1;
 }
 \$0`,

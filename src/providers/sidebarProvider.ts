@@ -1,26 +1,50 @@
 import * as vscode from 'vscode';
 
 import { compareEcosystemIds, getEcosystemLabel, getLanguageLabel } from '../core/ecosystems';
-import { formatEntryId, listEntries } from '../core/registry';
+import { buildSnippetPreview } from '../core/entries/format';
+import { formatEntryId, formatEntryTrigger, listEntries } from '../core/registry';
 import type { DictionaryEntry, TriggerLanguageKey } from '../types';
 
 interface SidebarNode {
   children?: readonly SidebarNode[];
   command?: vscode.Command;
+  contextValue?: string;
   description?: string;
   ecosystem?: string;
   entry?: DictionaryEntry;
   id: string;
   label: string;
   language?: TriggerLanguageKey;
-  tooltip?: string;
+  tooltip?: string | vscode.MarkdownString;
 }
+
+const TREE_VIEW_ID = 'codeDictionary.sidebar';
 
 const ROOT_NODES: readonly SidebarNode[] = [
   {
     id: 'commands',
     label: 'Commands',
     children: [
+      {
+        id: 'commands.searchInsert',
+        label: 'Search And Insert Entry',
+        description: 'Quick search',
+        tooltip: 'Search the full catalog and insert any entry into the active editor.',
+        command: {
+          command: 'codeDictionary.searchCatalog',
+          title: 'Search And Insert Entry',
+        },
+      },
+      {
+        id: 'commands.searchCopy',
+        label: 'Search And Copy Trigger',
+        description: 'Copy >trigger',
+        tooltip: 'Search the full catalog and copy the trigger for any entry.',
+        command: {
+          command: 'codeDictionary.searchCatalogAndCopyTrigger',
+          title: 'Search And Copy Trigger',
+        },
+      },
       {
         id: 'commands.expand',
         label: 'Expand Trigger at Cursor',
@@ -39,16 +63,6 @@ const ROOT_NODES: readonly SidebarNode[] = [
         command: {
           command: 'codeDictionary.translateSelection',
           title: 'Translate Selection',
-        },
-      },
-      {
-        id: 'commands.pick',
-        label: 'Pick And Insert Entry',
-        description: 'Browse all',
-        tooltip: 'Browse the full catalog and insert any entry.',
-        command: {
-          command: 'codeDictionary.pickAndInsert',
-          title: 'Pick And Insert Entry',
         },
       },
       {
@@ -71,19 +85,19 @@ const ROOT_NODES: readonly SidebarNode[] = [
         id: 'tips.trigger',
         label: 'Core And Package IDs',
         description: '>map.js or post.express.js',
-        tooltip: 'Core entries use >keyword.language. Package entries use keyword.package.language and can also be discovered by typing > in completion.',
+        tooltip: 'Core entries use >keyword.language. Package entries use keyword.package.language. Manual expansion accepts both >post.express.js and post.express.js.',
       },
       {
-        id: 'tips.catalog',
-        label: 'Browse By Ecosystem',
-        description: 'Language -> package',
-        tooltip: 'Open a language and then an ecosystem such as Express, Prisma, SQL, or Tailwind in the sidebar catalog.',
+        id: 'tips.insert',
+        label: 'Click Catalog Entries To Insert',
+        description: 'Direct insert',
+        tooltip: 'Selecting a catalog entry inserts its snippet into the active editor at the current selection.',
       },
       {
-        id: 'tips.selection',
-        label: 'Translate Selection Replaces Text',
-        description: 'In place',
-        tooltip: 'Translate Selection replaces the selected text instead of inserting beside it.',
+        id: 'tips.copy',
+        label: 'Right-Click To Copy Trigger',
+        description: 'Context action',
+        tooltip: 'Use the context menu on any catalog entry to copy the canonical trigger to your clipboard.',
       },
     ],
   },
@@ -127,14 +141,10 @@ class CodeDictionarySidebarProvider implements vscode.TreeDataProvider<SidebarNo
   }
 
   getTreeItem(element: SidebarNode): vscode.TreeItem {
-    const item = new vscode.TreeItem(
-      element.label,
-      hasChildren(element)
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.None,
-    );
+    const item = new vscode.TreeItem(element.label, getCollapsibleState(element));
 
     item.command = element.command;
+    item.contextValue = element.contextValue;
     item.description = element.description;
     item.id = element.id;
     item.tooltip = element.tooltip;
@@ -145,7 +155,7 @@ class CodeDictionarySidebarProvider implements vscode.TreeDataProvider<SidebarNo
 
 export function registerSidebarProvider(context: vscode.ExtensionContext): void {
   const provider = new CodeDictionarySidebarProvider();
-  const registration = vscode.window.registerTreeDataProvider('codeDictionary.sidebar', provider);
+  const registration = vscode.window.registerTreeDataProvider(TREE_VIEW_ID, provider);
   const configurationChangeRegistration = vscode.workspace.onDidChangeConfiguration((event) => {
     if (
       event.affectsConfiguration('codeDictionary.customEntries')
@@ -166,8 +176,8 @@ function buildCatalogRootNode(): SidebarNode {
   return {
     id: 'catalogs',
     label: 'Catalog',
-    description: `${languageCount} languages`,
-    tooltip: 'Browse all entries grouped by language and ecosystem/package.',
+    description: `${languageCount} languages | ${entries.length} entries`,
+    tooltip: 'Browse all entries grouped by language and ecosystem/package. Click an entry to insert it or use the sidebar search actions to find it faster.',
   };
 }
 
@@ -227,9 +237,46 @@ function buildEntryNodes(language: TriggerLanguageKey, ecosystem: string): Sideb
       id: `catalogs.entry.${formatEntryId(entry)}`,
       label: entry.keyword,
       description: formatEntryId(entry),
-      tooltip: `${entry.description}\n\n${getLanguageLabel(entry.language)} | ${getEcosystemLabel(entry.ecosystem)}`,
+      tooltip: buildEntryTooltip(entry),
+      command: {
+        command: 'codeDictionary.insertEntryFromSidebar',
+        title: 'Insert Entry',
+        arguments: [entry],
+      },
+      contextValue: 'codeDictionaryEntry',
       entry,
     }));
+}
+
+function buildEntryTooltip(entry: DictionaryEntry): vscode.MarkdownString {
+  const lines = [
+    `**${formatEntryId(entry)}**`,
+    '',
+    entry.description,
+    '',
+    `Trigger: ${formatEntryTrigger(entry)}`,
+    `Language: ${getLanguageLabel(entry.language)}`,
+    `Ecosystem: ${getEcosystemLabel(entry.ecosystem)}`,
+  ];
+  const preview = buildSnippetPreview(entry);
+
+  if (preview) {
+    lines.push('', 'Preview:', '', '```', preview, '```');
+  }
+
+  return new vscode.MarkdownString(lines.join('\n'));
+}
+
+function getCollapsibleState(element: SidebarNode): vscode.TreeItemCollapsibleState {
+  if (!hasChildren(element)) {
+    return vscode.TreeItemCollapsibleState.None;
+  }
+
+  if (element.id === 'commands' || element.id === 'catalogs') {
+    return vscode.TreeItemCollapsibleState.Expanded;
+  }
+
+  return vscode.TreeItemCollapsibleState.Collapsed;
 }
 
 function hasChildren(element: SidebarNode): boolean {
