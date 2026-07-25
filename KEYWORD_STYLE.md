@@ -2,18 +2,19 @@
 
 ## Purpose
 
-This file defines the canonical naming rules for trigger keywords.
+This file defines the canonical naming rules for entry keywords.
 
-Trigger format:
+The keyword is the first segment of both id shapes:
 
-`>keyword.language`
+- core entries: `>keyword.language`
+- package entries: `keyword.package.language`
 
 Examples:
 
 - `>map.js`
 - `>promiseall.js`
-- `>trycatch.js`
-- `>queryall.js`
+- `post.express.js`
+- `findmany.prisma.ts`
 
 ## Canonical Rules
 
@@ -37,12 +38,13 @@ Allowed:
 
 - `jsonparse`
 - `urlparams`
+- `findmany`
 
 Rejected:
 
 - `json-parse`
 - `json_parse`
-- `url-params`
+- `find-many`
 
 ### 3. One concept gets one canonical keyword
 
@@ -72,9 +74,27 @@ Examples:
 - use `queryall`, not `queryselectorall`
 - use `urlparams`, not `urlsearchparams`
 
-The goal is predictable and ergonomic triggers, not full API-name transcription.
+The goal is predictable and ergonomic ids, not full API-name transcription.
 
-### 6. Prefer plain concept names over implementation details
+### 6. For package entries, keep the keyword package-local
+
+Good:
+
+- `post.express.js`
+- `get.axios.js`
+- `findmany.prisma.ts`
+- `card.tailwind.react`
+
+Rejected:
+
+- `expresspost.express.js`
+- `axiosget.axios.js`
+- `prismafindmany.prisma.ts`
+- `tailwindcard.tailwind.react`
+
+If the package already scopes the concept, do not repeat the package name in the keyword.
+
+### 7. Prefer plain concept names over implementation details
 
 Examples:
 
@@ -107,4 +127,5 @@ Before adding a new keyword, verify:
 2. it uses only letters and digits
 3. it does not duplicate an existing concept under another spelling
 4. it is the shortest unambiguous name
-5. it matches the naming style already used in the catalog
+5. for package entries, it does not repeat the package name
+6. it matches the naming style already used in the catalog

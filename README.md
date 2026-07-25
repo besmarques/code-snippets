@@ -1,10 +1,8 @@
-# Code Dictionary VS Code Extension
+# Code Dictionary
 
-## Goal
+Code Dictionary is a VS Code extension that expands short ids into code snippets across core languages and built-in package ecosystems.
 
-Code Dictionary expands short ids into code snippets across multiple languages and ecosystems.
-
-## Trigger Model
+## Id Model
 
 There are two id shapes:
 
@@ -19,71 +17,58 @@ Examples:
 - `findmany.prisma.ts`
 - `card.tailwind.react`
 
-Notes:
+Rules:
 
 - completion suggestions only open after `>`
-- core entries are always shown with `>`
-- package entries are shown without `>` in lists, but can still be discovered by typing `>` in completion
+- core entries are shown with `>`
+- package entries are shown without `>` in lists, but can still be discovered by typing `>`
 - manual expansion accepts `>map.js`, `>post.express.js`, and `post.express.js`
+- supported language suffixes are `js`, `ts`, `react`, `java`, and `php`
+- suffix aliases such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected
 
-Supported language suffixes:
+## What Lives Where
 
-- `js`
-- `ts`
-- `react`
-- `java`
-- `php`
+### Built-In Entries
 
-Alias suffixes such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected.
+Built-in entries ship with the extension and live in source files under `src/data/ecosystems`.
 
-## Current File Structure
+Pattern:
 
 ```text
-src/
-  data/
-    ecosystems/
-      index.ts
-      js/
-        js.ts
-        packages/
-          axios.ts
-          dotenv.ts
-          express.ts
-          jsonwebtoken.ts
-          sql.ts
-      ts/
-        ts.ts
-        packages/
-          drizzle.ts
-          express.ts
-          prisma.ts
-          typeorm.ts
-          zod.ts
-      react/
-        react.ts
-        packages/
-          chakra.ts
-          mui.ts
-          shadcn.ts
-          tailwind.ts
-      java/
-        java.ts
-        packages/
-          jdbc.ts
-          jpa.ts
-      php/
-        php.ts
-        packages/
-          eloquent.ts
-          pdo.ts
+src/data/ecosystems/<language>/
+  <language>.ts
+  packages/
+    <package>.ts
 ```
 
-How it works:
+Examples:
 
-- each language has one root catalog file such as `src/data/ecosystems/js/js.ts`
-- package files live under that language in `packages/*.ts`
-- the root file imports those package arrays and spreads them into its `commands` array
-- `src/data/index.ts` flattens everything into runtime dictionary entries
+- `src/data/ecosystems/js/js.ts`
+- `src/data/ecosystems/js/packages/express.ts`
+- `src/data/ecosystems/ts/packages/prisma.ts`
+- `src/data/ecosystems/react/packages/tailwind.ts`
+
+### Custom Entries
+
+Custom entries live in `settings.json`.
+
+Important:
+
+- custom entries do not create source files
+- custom entries do not create new package catalogs
+- custom entries can target `core` or a built-in package that already exists for that language
+
+## Built-In Package Groups
+
+These are the current built-in package groups:
+
+- JavaScript: `axios`, `dotenv`, `express`, `jsonwebtoken`, `sql`
+- TypeScript: `drizzle`, `express`, `prisma`, `typeorm`, `zod`
+- React: `chakra`, `mui`, `shadcn`, `tailwind`
+- Java: `jdbc`, `jpa`
+- PHP: `eloquent`, `pdo`
+
+If a package is not in that list for the selected language, the custom-entry form should not let you target it.
 
 ## Extension Commands
 
@@ -92,32 +77,43 @@ How it works:
 - `codeDictionary.pickAndInsert`
 - `codeDictionary.showAvailableEntries`
 
-## How To Use It
+## Using The Extension
 
-Completion:
+### Completion
 
 - type `>` and start a core id such as `>map`
 - type `>` and start a package id such as `>post`, `>findmany`, or `>card`
 - use language-only filters such as `>.js`, `>.ts`, `>.react`, `>.java`, or `>.php`
 
-Manual expansion:
+### Expand Trigger At Cursor
 
-- type an id in the editor
-- run `Code Dictionary: Expand Trigger at Cursor`
+Type an id in the editor, put the cursor on it, and run `Code Dictionary: Expand Trigger at Cursor`.
 
-Translate selection:
+Examples:
 
-- select `>map.js`
-- or select `map.java`
-- or select `post.express.js`
-- or select normal code such as `items.map(...)`
-- run `Code Dictionary: Translate Selection`
+- `>map.js`
+- `>post.express.js`
+- `post.express.js`
 
-Sidebar:
+### Translate Selection
 
-- after `F5`, open the `Code Dictionary` Activity Bar icon
-- browse the catalog by language and ecosystem
-- use the `Add Custom Entry` view to save custom entries without editing JSON by hand
+Select any of these and run `Code Dictionary: Translate Selection`:
+
+- `>map.js`
+- `map.java`
+- `post.express.js`
+- `map`
+- `items.map(...)`
+
+### Sidebar
+
+After `F5`, open the `Code Dictionary` icon in the Activity Bar.
+
+The sidebar gives you:
+
+- command shortcuts
+- a catalog grouped by language and package
+- an `Add Custom Entry` form
 
 ## User Configuration
 
@@ -157,13 +153,34 @@ Rules:
 - `ecosystem` is optional for backward compatibility and defaults to `core`
 - custom entries override built-ins by full trigger id
 - different ecosystems can reuse the same keyword safely
+- package entries must target an existing built-in package for that language
 - `disabledEntries` accept either the visible id or the prefixed form
 
-## Adding A Built-In Snippet
+## Adding Built-In Entries
 
-Built-in snippets should be added to the closest language and package file, not to one monolithic catalog.
+### Add A Core Entry
 
-Example: adding `delete.express.js` inside `src/data/ecosystems/js/packages/express.ts`
+Example: add `>debounce.ts` in `src/data/ecosystems/ts/ts.ts`
+
+```ts
+{
+  keyword: 'debounce',
+  description: 'Create a typed debounce helper.',
+  snippet: `function debounce<T extends (...args: any[]) => void>(callback: T, delay = 250) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback(...args), delay);
+  };
+}
+$0`,
+},
+```
+
+### Add A Package Entry
+
+Example: add `delete.express.js` in `src/data/ecosystems/js/packages/express.ts`
 
 ```ts
 {
@@ -182,19 +199,34 @@ $0`,
 },
 ```
 
-Rules:
+Checklist:
 
 - keep `keyword` lowercase with letters and digits only
-- do not repeat the package name inside the keyword when the ecosystem already scopes it
-- if you need a new package file, create it under `src/data/ecosystems/<language>/packages`
-- import the new array into `src/data/ecosystems/<language>/<language>.ts`
-- run `npm test` after edits
+- for package entries, keep the keyword package-local
+- do not repeat the package name inside the keyword
+- if you create a new package file, place it under `src/data/ecosystems/<language>/packages`
+- import the new package array into `src/data/ecosystems/<language>/<language>.ts`
+- run `npm test`
 
-## Validation And Tests
+## Local Testing
+
+Use this flow while developing:
+
+1. run `npm test`
+2. run `npm run build:dev`
+3. press `F5` in VS Code
+4. in the Extension Development Host:
+   - type `>map.js`
+   - type `>post`
+   - use `Translate Selection`
+   - open the sidebar and inspect the catalog
+
+## Validation And Build
 
 - `npm run validate` checks catalog structure, invalid fields, duplicate trigger ids, and malformed placeholders
-- `npm test` runs the validation plus the test suite
-- `npm run build:dev` builds both the Node and browser bundles
+- `npm test` runs validation plus the test suite
+- `npm run build:dev` builds the Node and browser bundles
+- `npm run build` builds the production bundles
 
 ## Compatibility
 

@@ -2,365 +2,230 @@
 
 ## Purpose
 
-This file defines the future implementation path for the extension.
+This roadmap should answer three things clearly:
 
-The current product direction is:
+1. what the extension already does
+2. what still needs work
+3. what order makes the most sense next
 
-- core trigger format: `>keyword.language`
-- package trigger format: `keyword.package.language`
-- example triggers: `>map.js`, `post.express.js`, `findmany.prisma.ts`
-- language root catalogs live in `src/data/ecosystems/<language>/<language>.ts`
-- package catalogs live in `src/data/ecosystems/<language>/packages`
+## Product Direction
 
-## Current Baseline
+Code Dictionary is a VS Code extension that expands short ids into code snippets across core languages and built-in package ecosystems.
 
-What already exists:
+Current id model:
 
-- extension manifest and build setup
-- command registration
-- completion provider
-- trigger parsing for core and package ids
-- language catalogs for `js`, `react`, `ts`, `java`, and `php`
-- a much larger first-pass JavaScript catalog
+- core entries: `>keyword.language`
+- package entries: `keyword.package.language`
 
-## Step-By-Step Path
+Examples:
 
-### ~~1. Stabilize The Core Trigger Model~~
+- `>map.js`
+- `>map.react`
+- `post.express.js`
+- `findmany.prisma.ts`
+- `card.tailwind.react`
 
-~~Goal:~~
+Current data structure:
 
-~~Make sure the core/package id model is final and consistent.~~
+```text
+src/data/ecosystems/<language>/
+  <language>.ts
+  packages/
+    <package>.ts
+```
 
-~~Tasks:~~
+## Completed
 
-- ~~verify every command and doc assumes the final id model~~
-- ~~remove any stale assumptions about old trigger formats~~
-- ~~define a strict list of supported language suffixes~~
-- ~~decide whether aliases like `>map.javascript` should be supported or rejected~~
+These foundations are already in place:
 
-~~Decision: core ids use `>keyword.language`, package ids use `keyword.package.language`, and canonical suffixes are `js`, `ts`, `react`, `java`, and `php`. Alias suffixes such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected.~~
+- core and package id parsing
+- canonical language suffixes: `js`, `ts`, `react`, `java`, `php`
+- canonical keyword rules, including package-local keyword naming
+- built-in catalogs for JavaScript, TypeScript, React, Java, and PHP
+- package catalogs split by language under `src/data/ecosystems/<language>/packages`
+- completion provider with `>`-gated suggestions
+- language-only completion filtering such as `>.js`
+- exact entry resolution for both core and package ids
+- `translateSelection` support for exact ids, keyword-language ids, keywords, and inferred code patterns
+- sidebar catalog and command shortcuts
+- sidebar custom-entry form
+- custom entries and disabled built-ins in `settings.json`
+- restriction that custom entries can only target `core` or an existing built-in package for that language
+- validation for catalog structure and duplicate trigger ids
+- test suite for parser, registry, completion, inference, and command flows
+- browser and desktop bundle targets
+- cleaned and aligned documentation across user and contributor docs
 
-~~Done when:~~
+## Current Constraints
 
-- ~~parsing, completion, insertion, and docs all match one id model~~
+These are deliberate and should remain explicit:
 
-### ~~2. Normalize The Keyword Naming Rules~~
+- completion only opens after `>`
+- alias suffixes such as `javascript`, `typescript`, `jsx`, and `tsx` are rejected
+- custom entries can target `core` or an existing built-in package for that language only
+- the sidebar form does not create new source files or new package catalogs
+- built-in package files are still maintained in source, not through the UI
 
-~~Goal:~~
+## What Needs Improvement
 
-~~Make the keyword system predictable before the catalogs grow further.~~
+The project is functional, but there are still clear gaps.
 
-~~Tasks:~~
+### 1. Custom Entry Management
 
-- ~~define naming rules for keywords such as `map`, `promiseall`, `trycatch`, `queryall`~~
-- ~~decide when to use one word versus multiple words~~
-- ~~decide whether aliases should exist, for example `foreach` and `forEach`~~
-- ~~create a small naming guide for future entries~~
+Why it matters:
 
-~~Decision: canonical keywords are lowercase ASCII letters and digits only, multi-word concepts are collapsed into one word, and trigger aliases are rejected. The shortest unambiguous keyword wins.~~
+- users can add and override entries, but managing them is still rough
 
-~~Artifacts:~~
+Needed work:
 
-- ~~[KEYWORD_STYLE.md](C:\Users\besma\OneDrive\Documentos\vscode%20ext\KEYWORD_STYLE.md) defines the naming guide~~
-- ~~trigger parsing now enforces canonical keyword shape~~
+- add delete support for custom entries from the sidebar
+- add edit/load-existing-entry support in the sidebar form
+- show whether an entry overrides a built-in entry
+- add a quick action to open the exact `settings.json` location if needed
 
-~~Done when:~~
+### 2. Catalog Coverage Expansion
 
-- ~~new entries can be added without inventing inconsistent names~~
+Why it matters:
 
-### ~~3. Expand The React Catalog~~
+- the structure is strong enough now that snippet breadth is the main value driver
 
-~~Goal:~~
+Needed work:
 
-~~Bring React closer to the size of the JavaScript catalog.~~
+- review weak areas by language
+- expand built-in package coverage where the current ecosystem list is thin
+- keep package-local keywords clean and non-redundant
+- decide which ecosystems are important enough to include by default
 
-~~Tasks:~~
+High-value likely candidates:
 
-- ~~add common hooks like `useeffect`, `usestate`, `usememo`, `useref`~~
-- ~~add component patterns like `component`, `props`, `context`, `provider`~~
-- ~~add rendering patterns like `map`, `conditional`, `form`, `handler`~~
-- ~~add event patterns like `onclick`, `onchange`, `onsubmit`~~
-- ~~add async UI patterns like `loading`, `error`, `empty`, `fetch`~~
+- JavaScript: more server/runtime packages
+- TypeScript: more validation, ORM, and API patterns
+- React: more UI/data-fetch/form patterns
+- Java: more framework-level patterns if the project wants them
+- PHP: more framework/database/http patterns if the project wants them
 
-~~Decision: the React catalog now includes component patterns, rendering patterns, event/form patterns, standard hooks, and React 19 APIs including `use`, `useActionState`, `useOptimistic`, `useEffectEvent`, and `useFormStatus`.~~
+### 3. Contributor Workflow For Built-In Packages
 
-~~Done when:~~
+Why it matters:
 
-- ~~React has a practical starter library instead of a minimal demo set~~
+- contributors still need to understand the file layout manually before adding source entries
 
-### ~~4. Expand The TypeScript Catalog~~
+Needed work:
 
-~~Goal:~~
+- add a documented checklist for creating a new built-in package file
+- validate that package files are imported into the matching language root file
+- consider a small contributor script for listing built-in packages by language
 
-~~Make TypeScript useful as a first-class target, not only a small variation of JavaScript.~~
+### 4. Better Sidebar Discovery
 
-~~Tasks:~~
+Why it matters:
 
-- ~~add `type`, `interface`, `enum`, `generic`, `union`, `guard`~~
-- ~~add typed versions of `function`, `arrow`, `map`, `reduce`, `fetch`~~
-- ~~add typed object and API response snippets~~
-- ~~add class and utility patterns with explicit types~~
+- the catalog is growing, so browsing needs to stay fast
 
-~~Decision: the TypeScript catalog now includes dedicated type-system entries, typed function/data patterns, typed fetch/response helpers, and utility types such as `record`, `partial`, `readonlyarray`, and `tuple`.~~
+Needed work:
 
-~~Done when:~~
+- consider a search box or filtered quick action for entries
+- consider showing snippet previews or more helpful descriptions in the sidebar
+- consider better grouping labels for large languages with many package files
 
-- ~~TypeScript users can use the extension without falling back to JavaScript snippets~~
+### 5. Stronger End-To-End Testing
 
-### ~~5. Expand The Java Catalog~~
+Why it matters:
 
-~~Goal:~~
+- the current tests are good at logic-level coverage, but still stub VS Code heavily
 
-~~Turn Java into a meaningful library instead of a few proof-of-concept entries.~~
+Needed work:
 
-~~Tasks:~~
+- add real extension-host smoke tests for:
+  - activation
+  - completion registration
+  - sidebar registration
+  - settings-driven custom entries
+- add one packaging/install smoke test before publishing
 
-- ~~add `main`, `class`, `interface`, `record`, `enum`~~
-- ~~add `list`, `map`, `stream`, `optional`, `builder`~~
-- ~~add `trycatch`, `http`, `file`, `loop`, `switch`~~
-- ~~add common Spring-style snippets later if that scope is wanted~~
+### 6. Release And Packaging
 
-~~Decision: the Java catalog now covers entry points, types, collections, Stream API, Optional, builder patterns, control flow, file IO, and HTTP requests. Framework-specific Java patterns are still deferred.~~
+Why it matters:
 
-~~Done when:~~
+- the extension works locally, but release readiness is still incomplete
 
-- ~~Java has a broad enough catalog for day-to-day use~~
+Needed work:
 
-### ~~6. Expand The PHP Catalog~~
+- review manifest metadata
+- confirm icon and marketplace presentation
+- produce a `.vsix`
+- test install from the packaged artifact
+- add a release checklist
 
-~~Goal:~~
+## Recommended Next Order
 
-~~Bring PHP up to the same maturity level as JavaScript.~~
+The best order from here is:
 
-~~Tasks:~~
+1. improve custom-entry management
+2. expand built-in catalog coverage
+3. strengthen contributor workflow for built-in package files
+4. improve sidebar discovery
+5. add extension-host smoke tests
+6. package and test a real `.vsix`
 
-- ~~add `function`, `class`, `trait`, `interface`, `namespace`~~
-- ~~add `arraymap`, `foreach`, `match`, `trycatch`~~
-- ~~add `request`, `json`, `pdo`, `session`, `middleware` if needed~~
-- ~~decide whether framework-specific entries belong in core or in a later expansion~~
+## Immediate Next Step
 
-~~Decision: the PHP catalog now covers core language structures, array helpers, control flow, HTTP and JSON handling, PDO database access, sessions, and middleware-style patterns. Framework-specific PHP entries are still deferred.~~
-
-~~Done when:~~
-
-- ~~PHP has a real catalog instead of a starter subset~~
-
-### ~~7. Add Catalog Validation~~
-
-~~Goal:~~
-
-~~Prevent broken entries as the catalogs grow.~~
-
-~~Tasks:~~
-
-- ~~add a validator that checks for duplicate trigger ids~~
-- ~~detect invalid language values~~
-- ~~detect empty descriptions or snippet bodies~~
-- ~~detect malformed snippet placeholders where possible~~
-- ~~surface validation errors in a developer command or build step~~
-
-~~Decision: `npm run validate` now parses the catalog source files with the TypeScript AST and fails on duplicate entries, invalid language values, empty descriptions or snippets, invalid keyword shapes, and malformed numeric snippet placeholders. The same validation runs automatically before every build and watch rebuild.~~
-
-~~Done when:~~
-
-- ~~bad catalog data fails early instead of surfacing inside VS Code~~
-
-### ~~8. Add Automated Tests~~
-
-~~Goal:~~
-
-~~Stop relying only on manual extension-host testing.~~
-
-~~Tasks:~~
-
-- ~~add unit tests for trigger parsing~~
-- ~~add unit tests for entry resolution~~
-- ~~add unit tests for completion filtering~~
-- ~~add unit tests for keyword inference~~
-- ~~add integration tests for command execution in a test editor document~~
-
-~~Decision: `npm test` now bundles TypeScript tests with `esbuild`, aliases `vscode` to a local stub, and runs them with Node's built-in test runner. The suite covers trigger parsing, entry resolution, completion filtering, keyword inference, completion provider behavior, and command execution against in-memory editor documents.~~
-
-~~Done when:~~
-
-- ~~core behavior is protected against regressions~~
-
-### ~~9. Improve Completion UX~~
-
-~~Goal:~~
-
-~~Make completions faster and easier to understand.~~
-
-~~Tasks:~~
-
-- ~~show better detail text for each completion item~~
-- ~~sort results more intentionally~~
-- ~~decide whether completions should appear only after `>`~~
-- ~~consider preview text or documentation examples~~
-- ~~make sure completion behavior does not fight normal editor usage~~
-
-~~Decision: completions remain strictly scoped to `>`-prefixed triggers. Results are now ranked by exact keyword match, typed language suffix, active editor language, and prefix closeness. Each item shows a readable language label, a clearer detail line, and a short snippet preview in the documentation panel.~~
-
-~~Done when:~~
-
-- ~~users can discover entries without friction~~
-
-### ~~9.1. Tighten Language-Only Completion Filtering~~
-
-~~Goal:~~
-
-~~Make language-only prefixes and completion detail text more precise.~~
-
-~~Tasks:~~
-
-- ~~make `>.js`, `>.ts`, `>.react`, `>.java`, and `>.php` show only that language's entries~~
-- ~~remove redundant `JavaScript snippet` and similar labels from the one-line completion detail~~
-- ~~keep the interesting information in the detail line and leave preview text to the documentation panel~~
-
-~~Decision: language-only prefixes now filter strictly by suffix across every supported trigger language, and completion detail text now shows the entry description directly instead of repeating the language plus the word `snippet`.~~
-
-~~Done when:~~
-
-- ~~language-only filtering works consistently and completion rows waste less space~~
-
-### ~~10. Improve Translate Selection~~
-
-~~Goal:~~
-
-~~Make `translateSelection` useful beyond a small regex demo.~~
-
-~~Tasks:~~
-
-- ~~expand keyword inference coverage~~
-- ~~add better matching for real code selections~~
-- ~~allow the command to ask for a target language when needed~~
-- ~~decide whether selected code should be replaced or inserted beside the selection~~
-
-~~Decision: `translateSelection` now accepts exact core and package ids, triggerless core ids such as `map.java`, plain keywords, and a wider set of real code patterns. When a keyword maps to multiple languages, the command asks for the target language first. The chosen insertion model is replace-in-place: the selected text is replaced by the snippet instead of inserting a translation beside it.~~
-
-~~Done when:~~
-
-- ~~the command is predictably useful for real workflows~~
-
-### ~~11. Add User Configuration And Extensibility~~
-
-~~Goal:~~
-
-~~Make the extension customizable without editing source code.~~
-
-~~Tasks:~~
-
-- ~~add a setting for custom entries~~
-- ~~decide whether custom entries live in JSON or workspace settings~~
-- ~~allow users to disable built-in entries they do not want~~
-- ~~consider workspace-local catalogs later~~
-
-~~Decision: extensibility now lives in standard VS Code settings. `codeDictionary.customEntries` accepts custom catalog objects in `settings.json`, and `codeDictionary.disabledEntries` removes built-in entries by id. Custom entries override built-in entries with the same trigger id. Separate workspace-local catalog files are still deferred.~~
-
-~~Done when:~~
-
-- ~~teams can adapt the extension without forking it~~
-
-### ~~11.1. Add A Sidebar Form For Custom Entries~~
-
-~~Goal:~~
-
-~~Make custom entry creation visible and usable without hand-editing JSON settings.~~
-
-~~Tasks:~~
-
-- ~~add a sidebar form for `keyword`, `language`, `description`, and `snippet`~~
-- ~~save valid submissions into `codeDictionary.customEntries`~~
-- ~~upsert entries when the same trigger id already exists~~
-- ~~show enough feedback that the user knows where the entry was saved~~
-
-~~Decision: the Activity Bar sidebar now includes an `Add Custom Entry` webview form. Valid submissions are saved into `codeDictionary.customEntries`, existing custom entries with the same trigger id are updated in place, and the save feedback tells the user whether the entry went to workspace or user settings.~~
-
-~~Done when:~~
-
-- ~~users can add custom entries from the sidebar instead of editing JSON manually~~
-
-### ~~11.2. Add Ecosystem Catalog Files~~
-
-~~Goal:~~
-
-~~Expand the built-in catalog structure to cover the most common ecosystems beyond the current core languages.~~
-
-~~Tasks:~~
-
-- ~~add dedicated ecosystem section files inside the current supported languages~~
-- ~~add catalog files for common SQL families and dialects~~
-- ~~add catalog files for popular ORM patterns and query builders~~
-- ~~add catalog files for common Node packages and server-side utility libraries~~
-- ~~add catalog files for major design systems and UI component ecosystems~~
-- ~~decide which ecosystems belong in core and which should stay out of scope~~
-- ~~define naming rules so package, ORM, SQL, and design-system triggers stay consistent~~
-
-~~Decision: ecosystem snippets now live under `src/data/ecosystems/<language>/packages`, and each language now uses `src/data/ecosystems/<language>/<language>.ts` as its root catalog entrypoint. The initial coverage includes SQL sections for JavaScript and Java, ORM sections for TypeScript, Java, and PHP, Node package sections for JavaScript and TypeScript, and design-system sections for React.~~
-
-~~Artifacts:~~
-
-- ~~[src/data/ecosystems](C:\Users\besma\OneDrive\Documentos\vscode%20ext\src\data\ecosystems) contains the new split catalog files~~
-- ~~[README.md](C:\Users\besma\OneDrive\Documentos\vscode%20ext\README.md) and [COMMANDS.md](C:\Users\besma\OneDrive\Documentos\vscode%20ext\COMMANDS.md) now show an exact snippet-add example~~
-
-~~Done when:~~
-
-- ~~the project has a clear file structure and initial catalog coverage for the most common languages, SQLs, ORMs, Node packages, and design systems~~
-
-### 12. Improve Documentation
+### 12. Custom Entry Management
 
 Goal:
 
-Keep the docs useful as the feature set grows.
+Make custom entries maintainable from inside VS Code.
 
 Tasks:
 
-- add a catalog reference by language
-- document naming conventions
-- document how to test the extension locally
-- document how to add new catalog entries safely
-- document what is intentionally out of scope
+- support editing an existing custom entry from the sidebar
+- support deleting a custom entry from the sidebar
+- show override state clearly
+- keep the built-in-package restriction intact
 
 Done when:
 
-- a new contributor can understand the project without reverse-engineering the code
+- users do not need to hand-edit settings for normal custom-entry maintenance
 
-### 13. Package And Publish
+## After That
+
+### 13. Catalog Coverage Review
 
 Goal:
 
-Prepare the extension for real distribution.
+Increase snippet usefulness without damaging naming quality.
 
 Tasks:
 
-- review `package.json` metadata
-- add icon, license confirmation, and marketplace polish
-- package a `.vsix`
-- test install from packaged output
-- publish only after the core catalog and tests are in good shape
+- review each language for missing high-frequency patterns
+- add entries only where the keyword and package naming remain clean
+- avoid noisy or low-value snippets
 
 Done when:
 
-- the extension is installable outside the development workspace
+- the catalog feels intentionally curated rather than just larger
 
-## Recommended Order
+### 14. Release Readiness
 
-The best implementation order from here is:
+Goal:
 
-1. stabilize trigger model and naming rules
-2. expand React and TypeScript
-3. expand Java and PHP
-4. add validation
-5. add automated tests
-6. improve completion and selection workflows
-7. add custom user entries
-8. package and publish
+Prepare the extension for distribution.
+
+Tasks:
+
+- validate metadata and install flow
+- build and test a `.vsix`
+- add a release checklist and versioning discipline
+
+Done when:
+
+- the extension is installable and testable outside the dev workspace
 
 ## What Not To Do Yet
 
-Avoid these until the catalogs and tests are stronger:
+Avoid these until custom-entry management and release flow are cleaner:
 
+- generating source package files from the sidebar
 - adding AI generation
-- adding framework-specific catalogs everywhere
-- supporting multiple competing trigger formats
-- publishing before validation and tests exist
+- supporting multiple competing id formats
+- publishing before packaged install testing exists

@@ -1,6 +1,6 @@
 # Code Dictionary Commands
 
-## Trigger Shapes
+## Accepted Ids
 
 - core entries: `>keyword.language`
 - package entries: `keyword.package.language`
@@ -12,13 +12,43 @@ Examples:
 - `post.express.js`
 - `findmany.prisma.ts`
 
-Completion remains `>`-gated, so package entries are still discovered by typing `>` first.
+Completion stays `>`-gated even for package entries.
 
-## Data Structure
+## Command Reference
 
-Catalogs now live under `src/data/ecosystems`.
+### `codeDictionary.expandAtCursor`
 
-Pattern:
+Expands the id under the cursor.
+
+Accepted forms:
+
+- `>map.js`
+- `>post.express.js`
+- `post.express.js`
+
+### `codeDictionary.translateSelection`
+
+Replaces the selected text with a matching snippet.
+
+Accepted selections:
+
+- exact core ids such as `>loop.php`
+- triggerless core ids such as `map.java`
+- package ids such as `post.express.js`
+- plain keywords such as `map`
+- supported code patterns such as `items.map(...)`
+
+### `codeDictionary.pickAndInsert`
+
+Shows the current entry catalog and inserts the selected snippet.
+
+### `codeDictionary.showAvailableEntries`
+
+Opens a generated Markdown list of the current entries.
+
+## Source Layout
+
+Built-in entries live under:
 
 ```text
 src/data/ecosystems/<language>/
@@ -31,82 +61,40 @@ Examples:
 
 - `src/data/ecosystems/js/js.ts`
 - `src/data/ecosystems/js/packages/express.ts`
-- `src/data/ecosystems/ts/ts.ts`
 - `src/data/ecosystems/ts/packages/prisma.ts`
-- `src/data/ecosystems/react/packages/tailwind.ts`
 
-Each `<language>.ts` file is the language entrypoint and spreads package arrays into `commands`.
+## Custom Entry Limits
 
-## Extension Commands
+The sidebar form and `settings.json` custom entries:
 
-### `codeDictionary.expandAtCursor`
+- do not create source files
+- do not create new package catalogs
+- can target `core` or an existing built-in package for that language only
 
-Expands the id under the cursor.
+## Built-In Snippet Workflow
 
-Examples:
+### Core entry
 
-- `>map.js`
-- `>post.express.js`
-- `post.express.js`
+Add the snippet to the language root file such as `src/data/ecosystems/js/js.ts`.
 
-### `codeDictionary.translateSelection`
+### Package entry
 
-Replaces the selected text with the matching snippet.
+Add the snippet to the package file such as `src/data/ecosystems/js/packages/express.ts`.
 
-Accepted selections:
+Rules:
 
-- exact core ids such as `>loop.php`
-- triggerless core ids such as `map.java`
-- package ids such as `post.express.js`
-- plain keywords such as `map`
-- supported code patterns such as `items.map(...)`
-
-### `codeDictionary.pickAndInsert`
-
-Shows all available entries and inserts the selected snippet.
-
-### `codeDictionary.showAvailableEntries`
-
-Opens a generated Markdown list of all current entries.
-
-## Adding A Snippet
-
-Example: add `delete.express.js` in `src/data/ecosystems/js/packages/express.ts`
-
-```ts
-{
-  keyword: 'delete',
-  ecosystem: 'express',
-  description: 'Create an Express DELETE route handler.',
-  snippet: `app.delete('/${1:users}/:${2:id}', async (req, res) => {
-  try {
-    await ${3:userService}.remove(req.params.${2});
-    res.status(204).end();
-  } catch (${4:error}) {
-    res.status(500).json({ message: ${4}.message });
-  }
-});
-$0`,
-},
-```
-
-Checklist:
-
-- keep the keyword package-local and lowercase
-- store it in the closest `packages/*.ts` file
-- if needed, create a new package file under the language folder
-- import that package array into the language root file
+- keep keywords lowercase and package-local
+- do not repeat the package name in the keyword
+- if you add a new package file, import its array into the language root file
 - run `npm test`
 
-## Runtime Entry Shape
+## Dev Smoke Test
 
-```ts
-type DictionaryEntry = {
-  ecosystem: string;
-  keyword: string;
-  language: 'js' | 'ts' | 'react' | 'java' | 'php';
-  description: string;
-  detail?: string;
-  snippet: string;
-};
-```
+1. run `npm test`
+2. run `npm run build:dev`
+3. press `F5`
+4. in the Extension Development Host, test:
+   - `>map.js`
+   - `>post`
+   - `post.express.js`
+   - sidebar catalog
