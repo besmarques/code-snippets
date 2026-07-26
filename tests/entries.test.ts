@@ -137,17 +137,59 @@ test('custom entries override built-in entries with the same id', () => {
   assert.equal(entry.snippet, 'const customMap = true;\n$0');
 });
 
-test('listEntries includes ecosystem snippets from split catalog files', () => {
+test('listEntries includes ecosystem snippets from every split package catalog file', () => {
   const entriesById = new Map(listEntries().map((entry) => [formatEntryKey(entry), entry]));
 
-  assert.equal(entriesById.has('post.express.js'), true);
-  assert.equal(entriesById.get('post.express.js')?.ecosystem, 'express');
-  assert.equal(entriesById.get('findmany.prisma.ts')?.ecosystem, 'prisma');
-  assert.equal(entriesById.get('card.tailwind.react')?.ecosystem, 'tailwind');
-  assert.equal(entriesById.get('navbar.bootstrap.html')?.ecosystem, 'bootstrap');
-  assert.equal(entriesById.get('mixin.sass.css')?.ecosystem, 'sass');
-  assert.equal(entriesById.get('query.jdbc.java')?.ecosystem, 'jdbc');
-  assert.equal(entriesById.get('model.eloquent.php')?.ecosystem, 'eloquent');
+  assert.equal(entriesById.has('instance.axios.js'), true);
+  assert.equal(entriesById.get('instance.axios.js')?.ecosystem, 'axios');
+  assert.equal(entriesById.has('required.dotenv.js'), true);
+  assert.equal(entriesById.get('required.dotenv.js')?.ecosystem, 'dotenv');
+  assert.equal(entriesById.has('router.express.js'), true);
+  assert.equal(entriesById.get('router.express.js')?.ecosystem, 'express');
+  assert.equal(entriesById.has('middleware.jsonwebtoken.js'), true);
+  assert.equal(entriesById.get('middleware.jsonwebtoken.js')?.ecosystem, 'jsonwebtoken');
+  assert.equal(entriesById.has('join.sql.js'), true);
+  assert.equal(entriesById.get('join.sql.js')?.ecosystem, 'sql');
+
+  assert.equal(entriesById.has('transaction.drizzle.ts'), true);
+  assert.equal(entriesById.get('transaction.drizzle.ts')?.ecosystem, 'drizzle');
+  assert.equal(entriesById.has('router.express.ts'), true);
+  assert.equal(entriesById.get('router.express.ts')?.ecosystem, 'express');
+  assert.equal(entriesById.has('transaction.prisma.ts'), true);
+  assert.equal(entriesById.get('transaction.prisma.ts')?.ecosystem, 'prisma');
+  assert.equal(entriesById.has('querybuilder.typeorm.ts'), true);
+  assert.equal(entriesById.get('querybuilder.typeorm.ts')?.ecosystem, 'typeorm');
+  assert.equal(entriesById.has('refine.zod.ts'), true);
+  assert.equal(entriesById.get('refine.zod.ts')?.ecosystem, 'zod');
+
+  assert.equal(entriesById.has('dialog.chakra.react'), true);
+  assert.equal(entriesById.get('dialog.chakra.react')?.ecosystem, 'chakra');
+  assert.equal(entriesById.has('dialog.mui.react'), true);
+  assert.equal(entriesById.get('dialog.mui.react')?.ecosystem, 'mui');
+  assert.equal(entriesById.has('dialog.shadcn.react'), true);
+  assert.equal(entriesById.get('dialog.shadcn.react')?.ecosystem, 'shadcn');
+  assert.equal(entriesById.has('navbar.tailwind.react'), true);
+  assert.equal(entriesById.get('navbar.tailwind.react')?.ecosystem, 'tailwind');
+
+  assert.equal(entriesById.has('accordion.bootstrap.html'), true);
+  assert.equal(entriesById.get('accordion.bootstrap.html')?.ecosystem, 'bootstrap');
+  assert.equal(entriesById.has('stats.tailwind.html'), true);
+  assert.equal(entriesById.get('stats.tailwind.html')?.ecosystem, 'tailwind');
+
+  assert.equal(entriesById.has('media.sass.css'), true);
+  assert.equal(entriesById.get('media.sass.css')?.ecosystem, 'sass');
+  assert.equal(entriesById.has('surface.tailwind.css'), true);
+  assert.equal(entriesById.get('surface.tailwind.css')?.ecosystem, 'tailwind');
+
+  assert.equal(entriesById.has('call.jdbc.java'), true);
+  assert.equal(entriesById.get('call.jdbc.java')?.ecosystem, 'jdbc');
+  assert.equal(entriesById.has('manytomany.jpa.java'), true);
+  assert.equal(entriesById.get('manytomany.jpa.java')?.ecosystem, 'jpa');
+
+  assert.equal(entriesById.has('fetchall.pdo.php'), true);
+  assert.equal(entriesById.get('fetchall.pdo.php')?.ecosystem, 'pdo');
+  assert.equal(entriesById.has('belongsto.eloquent.php'), true);
+  assert.equal(entriesById.get('belongsto.eloquent.php')?.ecosystem, 'eloquent');
 });
 
 test('wrapper snippets keep wrapper bodies at the first tab stop for composition', () => {
@@ -213,3 +255,5 @@ test('wrapper snippets keep wrapper bodies at the first tab stop for composition
   assert.equal(phpMiddleware.snippet.includes('function ${2:handle}'), true);
   assert.equal(phpMiddleware.snippet.includes("${1:${TM_SELECTED_TEXT:if (!$request->user()) {"), true);
 });
+
+

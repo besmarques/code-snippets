@@ -29,4 +29,33 @@ export const JS_EXPRESS_COMMANDS: readonly LanguageCommandDefinition[] = [
 });
 \$0`,
   },
+  {
+    keyword: 'router',
+    ecosystem: 'express',
+    description: 'Create an Express router module.',
+    snippet: `import { Router } from 'express';
+
+const \${1:router} = Router();
+
+\${1}.get('/\${2:users}', async (req, res) => {
+  res.json({ \${3:ok}: true });
+});
+
+export default \${1};
+\$0`,
+  },
+  {
+    keyword: 'middleware',
+    ecosystem: 'express',
+    description: 'Create an Express middleware function.',
+    snippet: `app.use(async (req, res, next) => {
+  try {
+    \${1:req.context} = await \${2:loadContext}(req);
+    next();
+  } catch (\${3:error}) {
+    next(\${3});
+  }
+});
+\$0`,
+  },
 ];

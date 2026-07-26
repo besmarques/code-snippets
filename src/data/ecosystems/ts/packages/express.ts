@@ -17,4 +17,40 @@ const \${1:getUsers}: RequestHandler = async (req, res, next) => {
 };
 \$0`,
   },
+  {
+    keyword: 'middleware',
+    ecosystem: 'express',
+    description: 'Create a typed Express middleware.',
+    snippet: `import type { RequestHandler } from 'express';
+
+const \${1:requireAuth}: RequestHandler = (req, res, next) => {
+  if (!req.headers.authorization) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  next();
+};
+\$0`,
+  },
+  {
+    keyword: 'router',
+    ecosystem: 'express',
+    description: 'Create a typed Express router module.',
+    snippet: `import { Router } from 'express';
+
+const \${1:router} = Router();
+
+\${1}.get('/\${2:users}', async (req, res, next) => {
+  try {
+    const \${3:users} = await \${4:userService}.list();
+    res.json(\${3});
+  } catch (\${5:error}) {
+    next(\${5});
+  }
+});
+
+export default \${1};
+\$0`,
+  },
 ];

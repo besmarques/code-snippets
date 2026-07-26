@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This roadmap should reflect the actual codebase on Saturday, July 25, 2026:
+This roadmap should reflect the actual codebase on Sunday, July 26, 2026:
 
 1. what is already working
 2. what is still missing
@@ -39,16 +39,17 @@ Implemented:
 - browser and desktop bundles
 - wrapper snippet composition support using `TM_SELECTED_TEXT`
 - default expansion shortcut and in-editor expansion guide
+- coverage expansion across every existing built-in package ecosystem
 
 Current catalog footprint:
 
-- JavaScript: 54 entries
-- React: 40 entries
-- TypeScript: 26 entries
-- Java: 21 entries
-- PHP: 18 entries
-- HTML: 9 entries
-- CSS: 9 entries
+- JavaScript: 63 entries
+- React: 48 entries
+- TypeScript: 36 entries
+- Java: 31 entries
+- PHP: 28 entries
+- HTML: 27 entries
+- CSS: 27 entries
 
 Current built-in package files:
 
@@ -70,24 +71,7 @@ Current validation state:
 
 These are the remaining gaps visible in the current source.
 
-### 1. Catalog Coverage Is Still Uneven
-
-The catalog is already decent in `js`, `react`, and `ts`.
-
-The thinner areas are:
-
-- `html`
-- `css`
-- `java` package coverage
-- `php` package coverage
-
-There is still room for more high-value package ecosystems in:
-
-- JavaScript server/runtime work
-- TypeScript API, validation, and ORM patterns
-- React forms, state, data, and design-system patterns
-
-### 2. Contributor Workflow Is Still Mostly Manual
+### 1. Contributor Workflow Is Still Mostly Manual
 
 What exists:
 
@@ -97,11 +81,11 @@ What exists:
 
 What is missing:
 
-- no contributor script to list ecosystems and package files by language
+- no contributor script to list languages and package files by language
 - no contributor helper for adding a new package file
 - no single maintenance checklist focused on source-package additions
 
-### 3. Test Coverage Is Strong At Logic Level But Weak At Real VS Code Level
+### 2. Test Coverage Is Strong At Logic Level But Weak At Real VS Code Level
 
 What exists:
 
@@ -119,7 +103,7 @@ What is missing:
 - no real webview/sidebar smoke test
 - no packaged install smoke test
 
-### 4. Release Readiness Is Not Finished
+### 3. Release Readiness Is Not Finished
 
 What exists:
 
@@ -173,29 +157,32 @@ Delivered:
 - clearer empty-body wrapper behavior for nesting and wrapping
 - tests covering the expansion guide and wrapper composition behavior
 
-### 15. Catalog Coverage Expansion
+### ~~15. Catalog Coverage Expansion~~
 
-Goal:
+Completed on July 26, 2026.
 
-Increase usefulness without lowering naming quality.
+Delivered:
 
-Priority order:
+- HTML core coverage expansion from 9 to 23 entries together with richer `bootstrap` and `tailwind` package catalogs
+- CSS core coverage expansion from 9 to 23 entries together with richer `sass` and `tailwind` package catalogs
+- Java package coverage expansion from 21 to 27 entries across `jdbc` and `jpa`
+- PHP package coverage expansion from 18 to 24 entries across `pdo` and `eloquent`
+- registry tests updated to pin the new package catalogs into the loaded entry set
 
-1. HTML and CSS core/package coverage
-2. Java and PHP package coverage
-3. more JavaScript and TypeScript server/data packages
-4. more React package and UI patterns
+### ~~15.1 Coverage Deepening Across Existing Ecosystems~~
 
-Rules:
+Completed on July 26, 2026.
 
-- keep keywords canonical
-- keep package keywords package-local
-- avoid filler snippets
-- prefer high-frequency patterns only
+Delivered:
 
-Done when:
-
-- the thin languages stop feeling underpowered compared with `js`, `react`, and `ts`
+- JavaScript package coverage expansion from 54 to 63 entries across `axios`, `dotenv`, `express`, `jsonwebtoken`, and `sql`
+- TypeScript package coverage expansion from 26 to 36 entries across `drizzle`, `express`, `prisma`, `typeorm`, and `zod`
+- React package coverage expansion from 40 to 48 entries across `chakra`, `mui`, `shadcn`, and `tailwind`
+- HTML package coverage expansion from 23 to 27 entries by extending both existing package files
+- CSS package coverage expansion from 23 to 27 entries by extending both existing package files
+- Java package coverage expansion from 27 to 31 entries by extending both existing package files
+- PHP package coverage expansion from 24 to 28 entries by extending both existing package files
+- registry tests now pin one representative entry from every split package catalog file
 
 ### 16. Real Extension-Host Smoke Tests
 
