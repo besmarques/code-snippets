@@ -22,43 +22,53 @@ const TREE_VIEW_ID = 'codeDictionary.sidebar';
 
 const ROOT_NODES: readonly SidebarNode[] = [
   {
-    id: 'commands',
-    label: 'Commands',
+    id: 'actions',
+    label: 'Actions',
     children: [
       {
-        id: 'commands.searchInsert',
-        label: 'Search And Insert Entry',
-        description: 'Quick search',
+        id: 'actions.searchInsert',
+        label: 'Insert From Search',
+        description: 'Find any snippet',
         tooltip: 'Search the full catalog and insert any entry into the active editor.',
         command: {
           command: 'codeDictionary.searchCatalog',
-          title: 'Search And Insert Entry',
+          title: 'Insert From Search',
         },
       },
       {
-        id: 'commands.searchCopy',
-        label: 'Search And Copy Trigger',
-        description: 'Copy >trigger',
+        id: 'actions.searchCopy',
+        label: 'Copy Trigger',
+        description: 'Copy an entry id',
         tooltip: 'Search the full catalog and copy the trigger for any entry.',
         command: {
           command: 'codeDictionary.searchCatalogAndCopyTrigger',
-          title: 'Search And Copy Trigger',
+          title: 'Copy Trigger',
         },
       },
       {
-        id: 'commands.expand',
-        label: 'Expand Trigger at Cursor',
-        description: '>map.js',
-        tooltip: 'Replace a trigger like >map.js with its snippet.',
+        id: 'actions.expand',
+        label: 'Expand Trigger',
+        description: 'Ctrl+Alt+Enter',
+        tooltip: 'Replace a trigger like >map.js with its snippet. On macOS use Cmd+Alt+Enter.',
         command: {
           command: 'codeDictionary.expandAtCursor',
-          title: 'Expand Trigger at Cursor',
+          title: 'Expand Trigger',
         },
       },
       {
-        id: 'commands.translate',
+        id: 'actions.guide',
+        label: 'Open Expansion Guide',
+        description: 'Composition help',
+        tooltip: 'Open a short guide for trigger expansion, wrapping, nested snippets, and the default shortcut.',
+        command: {
+          command: 'codeDictionary.showExpansionGuide',
+          title: 'Open Expansion Guide',
+        },
+      },
+      {
+        id: 'actions.translate',
         label: 'Translate Selection',
-        description: 'map or map.java',
+        description: 'Convert code or id',
         tooltip: 'Replace a selected keyword, trigger, or supported code pattern with a snippet.',
         command: {
           command: 'codeDictionary.translateSelection',
@@ -66,38 +76,56 @@ const ROOT_NODES: readonly SidebarNode[] = [
         },
       },
       {
-        id: 'commands.show',
-        label: 'Show Available Entries',
-        description: 'Open list',
+        id: 'actions.show',
+        label: 'Open Entry List',
+        description: 'Full markdown list',
         tooltip: 'Open the full entry list in a markdown document.',
         command: {
           command: 'codeDictionary.showAvailableEntries',
-          title: 'Show Available Entries',
+          title: 'Open Entry List',
         },
       },
     ],
   },
   {
-    id: 'tips',
-    label: 'Quick Start',
+    id: 'help',
+    label: 'How It Works',
     children: [
       {
-        id: 'tips.trigger',
-        label: 'Core And Package IDs',
-        description: '>map.js or post.express.js',
-        tooltip: 'Core entries use >keyword.language. Package entries use keyword.package.language. Manual expansion accepts both >post.express.js and post.express.js.',
+        id: 'help.shortcut',
+        label: 'Expand shortcut',
+        description: 'Ctrl+Alt+Enter',
+        tooltip: 'Use Ctrl+Alt+Enter on Windows and Linux or Cmd+Alt+Enter on macOS to expand the trigger at the cursor.',
       },
       {
-        id: 'tips.insert',
-        label: 'Click Catalog Entries To Insert',
-        description: 'Direct insert',
-        tooltip: 'Selecting a catalog entry inserts its snippet into the active editor at the current selection.',
+        id: 'help.coreTrigger',
+        label: 'Core trigger',
+        description: '>map.js',
+        tooltip: 'Core entries use >keyword.language.',
       },
       {
-        id: 'tips.copy',
-        label: 'Right-Click To Copy Trigger',
-        description: 'Context action',
-        tooltip: 'Use the context menu on any catalog entry to copy the canonical trigger to your clipboard.',
+        id: 'help.packageTrigger',
+        label: 'Package trigger',
+        description: '>post.express.js',
+        tooltip: 'Package entries use >keyword.package.language. Manual expansion also accepts post.express.js without the leading >.',
+      },
+      {
+        id: 'help.nested',
+        label: 'Nested expansion',
+        description: 'Wrapper first, trigger second',
+        tooltip: 'Expand a wrapper like >function.js, place the nested trigger inside its body, then run Expand Trigger again.',
+      },
+      {
+        id: 'help.wrap',
+        label: 'Wrap selected code',
+        description: 'Select code, then expand',
+        tooltip: 'Select existing code, then expand a wrapper trigger. The selected code is inserted into the wrapper body.',
+      },
+      {
+        id: 'help.customEntries',
+        label: 'Custom entries view',
+        description: 'Add your own snippets',
+        tooltip: 'Use the Custom Entries view in this sidebar to add, edit, and delete your own core or package triggers.',
       },
     ],
   },
@@ -176,8 +204,8 @@ function buildCatalogRootNode(): SidebarNode {
   return {
     id: 'catalogs',
     label: 'Catalog',
-    description: `${languageCount} languages | ${entries.length} entries`,
-    tooltip: 'Browse all entries grouped by language and ecosystem/package. Click an entry to insert it or use the sidebar search actions to find it faster.',
+    description: `${languageCount} languages, ${entries.length} entries`,
+    tooltip: 'Browse all entries grouped by language and ecosystem or package. Click an entry to insert it or use the search actions above to find it faster.',
   };
 }
 
@@ -201,8 +229,8 @@ function buildLanguageNodes(): SidebarNode[] {
         id: `catalogs.language.${language}`,
         label: getLanguageLabel(language),
         language,
-        description: `${ecosystemCount} ecosystems | ${languageEntries.length} entries`,
-        tooltip: `Browse ${getLanguageLabel(language)} entries by ecosystem.`,
+        description: `${ecosystemCount} ecosystems, ${languageEntries.length} entries`,
+        tooltip: `Browse ${getLanguageLabel(language)} entries by ecosystem or package.`,
       };
     });
 }
@@ -272,7 +300,7 @@ function getCollapsibleState(element: SidebarNode): vscode.TreeItemCollapsibleSt
     return vscode.TreeItemCollapsibleState.None;
   }
 
-  if (element.id === 'commands' || element.id === 'catalogs') {
+  if (element.id === 'actions' || element.id === 'catalogs') {
     return vscode.TreeItemCollapsibleState.Expanded;
   }
 

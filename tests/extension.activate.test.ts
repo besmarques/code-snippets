@@ -10,7 +10,7 @@ import {
   __reset,
 } from './support/vscode';
 
-test('activate registers commands, the explorer tree view, the custom entry view, and completions', () => {
+test('activate registers commands, the sidebar views, and completions', () => {
   __reset();
 
   const context = {
@@ -35,8 +35,8 @@ test('activate registers commands, the explorer tree view, the custom entry view
     'codeDictionary.searchCatalog',
     'codeDictionary.searchCatalogAndCopyTrigger',
     'codeDictionary.showAvailableEntries',
+    'codeDictionary.showExpansionGuide',
     'codeDictionary.translateSelection',
   ]);
-  assert.equal(context.subscriptions.length, 14);
+  assert.equal(context.subscriptions.length, 15);
 });
-

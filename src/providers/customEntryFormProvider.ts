@@ -67,13 +67,13 @@ function buildCustomEntryListItems(): CustomEntryListItem[] {
 
 function buildEntryListMarkup(items: readonly CustomEntryListItem[]): string {
   if (!items.length) {
-    return '<p class="empty-state">No custom entries yet.</p>';
+    return '<p class="empty-state">No custom entries yet. Add one above.</p>';
   }
 
   return [
     '<ul id="custom-entry-list" class="entry-list">',
     ...items.map((item) => {
-      const overrideLabel = item.overridesBuiltIn ? 'Overrides built-in' : 'Custom only';
+      const overrideLabel = item.overridesBuiltIn ? 'Overrides built-in' : 'Custom';
       const badgeClassName = item.overridesBuiltIn ? 'badge warning' : 'badge muted';
 
       return [
@@ -114,7 +114,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
     content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';"
   />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Add Custom Entry</title>
+  <title>Custom Entries</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -328,8 +328,8 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 <body>
   <div class="layout">
     <section>
-      <h2>Add Custom Entry</h2>
-      <p class="help">Create either a core entry like <code>&gt;map.js</code> or a package entry like <code>post.express.js</code>. It saves to workspace settings when a workspace is open. Otherwise it saves to your user settings.</p>
+      <h2>Custom Entries</h2>
+      <p class="help">Add a core trigger like <code>&gt;map.js</code> or a package trigger like <code>post.express.js</code>. Entries save to workspace settings when a folder is open. Otherwise they save to your user settings.</p>
     </section>
     ${statusMarkup}
     <form id="custom-entry-form">
@@ -337,8 +337,8 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       <label>
         Entry Type
         <select id="entry-type" name="entryType">
-          <option value="core">Core entry</option>
-          <option value="package">Package entry</option>
+          <option value="core">Core snippet</option>
+          <option value="package">Package snippet</option>
         </select>
       </label>
       <label>
@@ -362,27 +362,27 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       </div>
       <label>
         Description
-        <input id="description" name="description" placeholder="Convert text into a URL slug." required />
+        <input id="description" name="description" placeholder="Short description for this snippet." required />
       </label>
       <label>
         Snippet
         <textarea id="snippet" name="snippet" placeholder="const slug = input.toLowerCase();&#10;$0" required></textarea>
       </label>
       <div class="preview">
-        <span class="help">Generated Id</span>
+        <span class="help">Trigger Preview</span>
         <code id="entry-id-preview">&gt;slugify.js</code>
       </div>
       <div id="editing-state" class="editing-state"></div>
       <div class="button-row">
-        <button id="submit-button" type="submit">Save Custom Entry</button>
+        <button id="submit-button" type="submit">Save Entry</button>
         <button id="cancel-edit" type="button" class="secondary-button" hidden>Cancel Edit</button>
-        <button id="open-settings" type="button" class="secondary-button">Open Settings JSON</button>
+        <button id="open-settings" type="button" class="secondary-button">Open Settings</button>
       </div>
       <p id="ecosystem-help" class="help">${buildPackageHelp(defaultLanguage, ecosystemsByLanguage)}</p>
-      <p class="help">Package entries only target package files that already exist in the built-in catalog. Use <code>post</code> plus <code>express</code>, not <code>expresspost</code>. If a custom entry uses the same trigger id as a built-in one, the custom entry overrides it.</p>
+      <p class="help">Package snippets can only target built-in package files that already exist for that language. Use <code>post</code> plus <code>express</code>, not <code>expresspost</code>. If a custom entry reuses a built-in trigger id, your custom version wins.</p>
     </form>
     <section>
-      <h3>Current Custom Entries</h3>
+      <h3>Saved Entries</h3>
       ${buildEntryListMarkup(customEntries)}
     </section>
   </div>
@@ -420,7 +420,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
         return 'No package files exist for ' + language + ' yet. Use a core entry instead.';
       }
 
-      return 'Common package ids for ' + language + ': ' + options.map((option) => option.id).join(', ');
+      return 'Built-in package ids for ' + language + ': ' + options.map((option) => option.id).join(', ');
     }
 
     function renderPackageOptions() {
@@ -454,7 +454,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
 
       if (!isPackageEntry) {
         ecosystemInput.value = 'core';
-        ecosystemHelp.textContent = 'Core entries use >keyword.language.';
+        ecosystemHelp.textContent = 'Core snippets use >keyword.language.';
         return;
       }
 
@@ -483,7 +483,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       previousEntryIdInput.value = '';
       ecosystemInput.value = 'core';
       editingState.textContent = '';
-      submitButton.textContent = 'Save Custom Entry';
+      submitButton.textContent = 'Save Entry';
       cancelEditButton.hidden = true;
       renderPackageOptions();
       renderEntryMode();
@@ -514,7 +514,7 @@ function getWebviewHtml(webview: vscode.Webview, statusMessage?: { kind: 'error'
       renderEntryMode();
       renderEntryIdPreview();
       editingState.textContent = 'Editing ' + entry.trigger;
-      submitButton.textContent = 'Update Custom Entry';
+      submitButton.textContent = 'Update Entry';
       cancelEditButton.hidden = false;
       keywordInput.focus();
     }
@@ -631,7 +631,7 @@ function buildPackageHelp(
     return `No package files exist for ${label} yet. Use a core entry instead.`;
   }
 
-  return `Common package ids for ${label}: ${options.map((option) => option.id).join(', ')}`;
+  return `Built-in package ids for ${label}: ${options.map((option) => option.id).join(', ')}`;
 }
 
 function buildPackageOptionMarkup(
@@ -728,7 +728,7 @@ class CustomEntryFormProvider implements vscode.WebviewViewProvider {
 
       if (message.type === 'openCustomEntrySettings') {
         const target = await openCustomEntrySettings();
-        void vscode.window.showInformationMessage(`Opened ${target} settings JSON. Look for codeDictionary.customEntries.`);
+        void vscode.window.showInformationMessage(`Opened ${target} settings JSON. Look for codeDictionary.customEntries if you want to edit entries directly.`);
       }
     });
   }
@@ -746,6 +746,8 @@ export function registerCustomEntryFormProvider(context: vscode.ExtensionContext
 
   context.subscriptions.push(registration);
 }
+
+
 
 
 

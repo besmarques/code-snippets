@@ -11,11 +11,11 @@ export const REACT_CATALOG: LanguageCatalog = {
     {
       keyword: 'component',
       description: 'Create a simple React function component.',
-      snippet: `export function \${1:ExampleComponent}() {
+      snippet: `export function \${2:ExampleComponent}() {
   return (
-    <\${2:section}>
-      \${3:\${TM_SELECTED_TEXT:Content}}
-    </\${2}>
+    <\${3:section}>
+      \${1:\${TM_SELECTED_TEXT:Content}}
+    </\${3}>
   );
 }
 \$0`,
@@ -81,9 +81,9 @@ return (
     {
       keyword: 'handler',
       description: 'Create a reusable React event handler.',
-      snippet: `function \${1:handleSubmit}(\${2:event}) {
-  \${2}.preventDefault();
-  \${3:\${TM_SELECTED_TEXT}}
+      snippet: `function \${2:handleSubmit}(\${3:event}) {
+  \${3}.preventDefault();
+  \${1:\${TM_SELECTED_TEXT}}
 }
 \$0`,
     },
@@ -115,14 +115,14 @@ function \${3:handleChange}(\${4:event}) {
     {
       keyword: 'onsubmit',
       description: 'Handle form submission in a React component.',
-      snippet: `function \${1:handleSubmit}(\${2:event}) {
-  \${2}.preventDefault();
-  \${3:\${TM_SELECTED_TEXT}}
+      snippet: `function \${2:handleSubmit}(\${3:event}) {
+  \${3}.preventDefault();
+  \${4:// submit logic}
 }
 
 return (
-  <form onSubmit={\${1}}>
-    \${4:\${TM_SELECTED_TEXT}}
+  <form onSubmit={\${2}}>
+    \${1:\${TM_SELECTED_TEXT:<button type="submit">Submit</button>}}
   </form>
 );
 \$0`,
@@ -130,15 +130,15 @@ return (
     {
       keyword: 'form',
       description: 'Create a React 19-style form with an action prop.',
-      snippet: `async function \${1:submitAction}(\${2:formData}) {
-  const \${3:value} = \${2}.get('\${4:name}');
-  \${5:\${TM_SELECTED_TEXT}}
+      snippet: `async function \${2:submitAction}(\${3:formData}) {
+  const \${4:value} = \${3}.get('\${5:name}');
+  \${6:// submit logic}
 }
 
 return (
-  <form action={\${1}}>
-    <input type="text" name="\${4:name}" />
-    <button type="submit">\${6:Submit}</button>
+  <form action={\${2}}>
+    \${1:\${TM_SELECTED_TEXT:<input type="text" name="\${5:name}" />}}
+    <button type="submit">\${7:Submit}</button>
   </form>
 );
 \$0`,
@@ -415,3 +415,4 @@ function \${2:handleChange}(\${3:value}) {
     ...REACT_TAILWIND_COMMANDS,
   ],
 };
+

@@ -44,7 +44,7 @@
       },
       {
         "command": "codeDictionary.expandAtCursor",
-        "title": "Code Dictionary: Expand Trigger at Cursor",
+        "title": "Code Dictionary: Expand Trigger",
         "category": "Code Dictionary"
       },
       {
@@ -59,12 +59,12 @@
       },
       {
         "command": "codeDictionary.searchCatalog",
-        "title": "Code Dictionary: Search Catalog and Insert Entry",
+        "title": "Code Dictionary: Search and Insert",
         "category": "Code Dictionary"
       },
       {
         "command": "codeDictionary.searchCatalogAndCopyTrigger",
-        "title": "Code Dictionary: Search Catalog and Copy Trigger",
+        "title": "Code Dictionary: Search and Copy Trigger",
         "category": "Code Dictionary"
       },
       {
@@ -79,7 +79,12 @@
       },
       {
         "command": "codeDictionary.showAvailableEntries",
-        "title": "Code Dictionary: Show Available Entries",
+        "title": "Code Dictionary: Show Entry List",
+        "category": "Code Dictionary"
+      },
+      {
+        "command": "codeDictionary.showExpansionGuide",
+        "title": "Code Dictionary: Show Expansion Guide",
         "category": "Code Dictionary"
       }
     ],
@@ -94,7 +99,7 @@
         },
         {
           "id": "codeDictionary.customEntries",
-          "name": "Add Custom Entry",
+          "name": "Custom Entries",
           "contextualTitle": "Code Dictionary",
           "icon": "media/code-dictionary.svg",
           "type": "webview",
@@ -202,7 +207,15 @@
           "icon": "media/code-dictionary.svg"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "codeDictionary.expandAtCursor",
+        "key": "ctrl+alt+enter",
+        "mac": "cmd+alt+enter",
+        "when": "editorTextFocus && !editorReadonly"
+      }
+    ]
   },
   "scripts": {
     "test": "node scripts/runTests.mjs",

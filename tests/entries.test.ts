@@ -150,28 +150,66 @@ test('listEntries includes ecosystem snippets from split catalog files', () => {
   assert.equal(entriesById.get('model.eloquent.php')?.ecosystem, 'eloquent');
 });
 
-test('wrapper snippets support selected-text composition without forcing a default body', () => {
+test('wrapper snippets keep wrapper bodies at the first tab stop for composition', () => {
   const jsFunction = resolveEntryFromTrigger({
     raw: '>function.js',
     keyword: 'function',
     language: 'js',
   });
-  const javaLoop = resolveEntryFromTrigger({
-    raw: '>loop.java',
-    keyword: 'loop',
-    language: 'java',
+  const jsComponent = resolveEntryFromTrigger({
+    raw: '>component.js',
+    keyword: 'component',
+    language: 'js',
+  });
+  const tsAsync = resolveEntryFromTrigger({
+    raw: '>async.ts',
+    keyword: 'async',
+    language: 'ts',
+  });
+  const reactComponent = resolveEntryFromTrigger({
+    raw: '>component.react',
+    keyword: 'component',
+    language: 'react',
+  });
+  const reactOnSubmit = resolveEntryFromTrigger({
+    raw: '>onsubmit.react',
+    keyword: 'onsubmit',
+    language: 'react',
+  });
+  const reactForm = resolveEntryFromTrigger({
+    raw: '>form.react',
+    keyword: 'form',
+    language: 'react',
   });
   const phpFunction = resolveEntryFromTrigger({
     raw: '>function.php',
     keyword: 'function',
     language: 'php',
   });
+  const phpMiddleware = resolveEntryFromTrigger({
+    raw: '>middleware.php',
+    keyword: 'middleware',
+    language: 'php',
+  });
 
   assert.ok(jsFunction);
-  assert.ok(javaLoop);
+  assert.ok(jsComponent);
+  assert.ok(tsAsync);
+  assert.ok(reactComponent);
+  assert.ok(reactOnSubmit);
+  assert.ok(reactForm);
   assert.ok(phpFunction);
-  assert.match(jsFunction.snippet, /\$\{1:\\?\$\{TM_SELECTED_TEXT\}\}/);
+  assert.ok(phpMiddleware);
+
+  assert.equal(jsFunction.snippet.includes('${1:${TM_SELECTED_TEXT}}'), true);
   assert.doesNotMatch(jsFunction.snippet, /return value;/);
-  assert.match(javaLoop.snippet, /TM_SELECTED_TEXT/);
-  assert.match(phpFunction.snippet, /TM_SELECTED_TEXT/);
+  assert.equal(jsComponent.snippet.includes('${1:${TM_SELECTED_TEXT:<section>Content</section>}}'), true);
+  assert.equal(tsAsync.snippet.includes('${1:${TM_SELECTED_TEXT}}'), true);
+  assert.equal(reactComponent.snippet.includes('${1:${TM_SELECTED_TEXT:Content}}'), true);
+  assert.equal(reactOnSubmit.snippet.includes('${1:${TM_SELECTED_TEXT:<button type="submit">Submit</button>}}'), true);
+  assert.equal(reactForm.snippet.includes('${1:${TM_SELECTED_TEXT:<input type="text" name="${5:name}" />}}'), true);
+  assert.equal(phpFunction.snippet.includes('function ${2:formatUser}'), true);
+  assert.equal(phpFunction.snippet.includes("${1:${TM_SELECTED_TEXT:return $user['name'] ?? '';}}"), true);
+  assert.equal(phpMiddleware.snippet.includes('function ${2:handle}'), true);
+  assert.equal(phpMiddleware.snippet.includes("${1:${TM_SELECTED_TEXT:if (!$request->user()) {"), true);
 });

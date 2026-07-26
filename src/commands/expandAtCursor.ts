@@ -8,14 +8,14 @@ export async function expandAtCursor(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
 
   if (!editor) {
-    void vscode.window.showInformationMessage('Open an editor before expanding a code-dictionary trigger.');
+    void vscode.window.showInformationMessage('Open an editor, type a trigger such as >map.js, and then run Code Dictionary: Expand Trigger.');
     return;
   }
 
   const trigger = findTriggerAtCursor(editor.document, editor.selection.active);
 
   if (!trigger) {
-    void vscode.window.showInformationMessage('No valid dictionary trigger was found at the cursor.');
+    void vscode.window.showInformationMessage('No valid dictionary trigger was found at the cursor. Try >map.js or >post.express.js and run Code Dictionary: Expand Trigger again.');
     return;
   }
 

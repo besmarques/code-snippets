@@ -1,4 +1,4 @@
-﻿# Code Dictionary Roadmap
+# Code Dictionary Roadmap
 
 ## Purpose
 
@@ -28,12 +28,17 @@ Implemented:
   - plain keywords such as `map`
   - inferred code patterns such as `items.map(...)`
 - sidebar catalog grouped by language and ecosystem
-- sidebar webview for adding custom entries
+- sidebar search actions for insert and trigger copy
+- clickable sidebar entry insertion and trigger-copy actions
+- sidebar webview for adding, editing, and deleting custom entries
+- override visibility for custom entries that replace built-ins
+- quick action to open the relevant settings JSON
 - custom entries and disabled built-ins stored in settings
 - restriction that custom entries can only target `core` or an existing built-in package for that language
 - catalog validation and logic-level tests
 - browser and desktop bundles
 - wrapper snippet composition support using `TM_SELECTED_TEXT`
+- default expansion shortcut and in-editor expansion guide
 
 Current catalog footprint:
 
@@ -63,52 +68,9 @@ Current validation state:
 
 ## Confirmed Gaps In The Current Codebase
 
-These are not guesses. They are visible in the current source.
+These are the remaining gaps visible in the current source.
 
-### 1. Custom Entry Maintenance Is Still Incomplete
-
-What exists:
-
-- the sidebar form can create and update a custom entry
-- the webview lists current custom entries
-
-What is missing:
-
-- no edit button to load an existing custom entry back into the form
-- no delete action for custom entries
-- no override badge showing that a custom entry replaces a built-in entry
-- no quick action to open the relevant `settings.json` location
-
-### 2. Sidebar Catalog Is Browse-Only
-
-What exists:
-
-- language grouping
-- ecosystem grouping
-- entry listing
-
-What is missing:
-
-- clicking an entry does not insert it
-- there is no copy-trigger action
-- there is no search or filter inside the sidebar
-- there is no richer preview beyond tooltip text
-
-### 3. Expansion UX Still Depends Too Much On VS Code Defaults
-
-What exists:
-
-- completion suggestions
-- explicit `Expand Trigger at Cursor`
-- wrapper snippets that can accept selected code
-
-What is missing:
-
-- no dedicated keybinding for expansion
-- no clearer compose/expand workflow in the command surface
-- nested wrapper flows still depend on how VS Code accepts completion items with `Enter` or `Tab`
-
-### 4. Catalog Coverage Is Uneven
+### 1. Catalog Coverage Is Still Uneven
 
 The catalog is already decent in `js`, `react`, and `ts`.
 
@@ -125,7 +87,7 @@ There is still room for more high-value package ecosystems in:
 - TypeScript API, validation, and ORM patterns
 - React forms, state, data, and design-system patterns
 
-### 5. Contributor Workflow Is Still Mostly Manual
+### 2. Contributor Workflow Is Still Mostly Manual
 
 What exists:
 
@@ -139,7 +101,7 @@ What is missing:
 - no contributor helper for adding a new package file
 - no single maintenance checklist focused on source-package additions
 
-### 6. Test Coverage Is Strong At Logic Level But Weak At Real VS Code Level
+### 3. Test Coverage Is Strong At Logic Level But Weak At Real VS Code Level
 
 What exists:
 
@@ -157,7 +119,7 @@ What is missing:
 - no real webview/sidebar smoke test
 - no packaged install smoke test
 
-### 7. Release Readiness Is Not Finished
+### 4. Release Readiness Is Not Finished
 
 What exists:
 
@@ -199,22 +161,17 @@ Delivered:
 - richer entry previews in catalog tooltips
 - more readable default grouping through collapsed catalog sections
 
-### 14. Snippet Expansion UX Polish
+### ~~14. Snippet Expansion UX Polish~~
 
-Goal:
+Completed on July 25, 2026.
 
-Reduce friction around expansion and composition.
+Delivered:
 
-Tasks:
-
-- add a default keybinding for `codeDictionary.expandAtCursor`
-- document the exact wrapper/composition workflow more clearly
-- review wrapper snippets for consistent body-first behavior
-- make nested expansion feel less dependent on VS Code defaults
-
-Done when:
-
-- users do not need trial and error to understand how to expand or compose snippets
+- a default keybinding for `codeDictionary.expandAtCursor`
+- a dedicated `codeDictionary.showExpansionGuide` command
+- shortcut and expansion guidance in the sidebar action area
+- clearer empty-body wrapper behavior for nesting and wrapping
+- tests covering the expansion guide and wrapper composition behavior
 
 ### 15. Catalog Coverage Expansion
 
@@ -298,4 +255,3 @@ Avoid these until the roadmap above is complete:
 - allowing arbitrary new ecosystems from the UI
 - adding alias trigger formats
 - adding AI generation before the catalog and release flow are stable
-

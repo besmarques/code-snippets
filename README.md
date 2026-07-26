@@ -1,4 +1,4 @@
-﻿# Code Dictionary
+# Code Dictionary
 
 Code Dictionary is a VS Code extension that expands short ids into code snippets across core languages and built-in package ecosystems.
 
@@ -76,10 +76,14 @@ If a package is not in that list for the selected language, the custom-entry for
 
 ## Extension Commands
 
+- `codeDictionary.openSidebar`
 - `codeDictionary.expandAtCursor`
+- `codeDictionary.searchCatalog`
+- `codeDictionary.searchCatalogAndCopyTrigger`
 - `codeDictionary.translateSelection`
 - `codeDictionary.pickAndInsert`
 - `codeDictionary.showAvailableEntries`
+- `codeDictionary.showExpansionGuide`
 
 ## Using The Extension
 
@@ -91,7 +95,12 @@ If a package is not in that list for the selected language, the custom-entry for
 
 ### Expand Trigger At Cursor
 
-Type an id in the editor, put the cursor on it, and run `Code Dictionary: Expand Trigger at Cursor`.
+Type an id in the editor, put the cursor on it, and run `Code Dictionary: Expand Trigger`.
+
+Default shortcut:
+
+- Windows and Linux: `Ctrl+Alt+Enter`
+- macOS: `Cmd+Alt+Enter`
 
 Examples:
 
@@ -111,7 +120,7 @@ Nested expansion:
 - expand a wrapper entry such as `>function.js`
 - the first cursor stop is the wrapper body
 - type another trigger inside its body, such as `>map.js`
-- expand that trigger again with completion or `Code Dictionary: Expand Trigger at Cursor`
+- expand that trigger again with completion or `Code Dictionary: Expand Trigger`
 
 Wrapping existing code:
 
@@ -121,6 +130,8 @@ Wrapping existing code:
 
 Wrapper-style entries now use `TM_SELECTED_TEXT`, so the selected code is inserted into the wrapper body when that pattern is used.
 Core JS and TS function wrappers no longer inject a default `return` line.
+
+If you want the short in-editor explanation, run `Code Dictionary: Show Expansion Guide`.
 
 ### Translate Selection
 
@@ -139,11 +150,13 @@ After `F5`, open the `Code Dictionary` icon in the Activity Bar.
 The sidebar gives you:
 
 - command shortcuts
+- shortcut guidance for expansion
 - searchable catalog actions for insert and trigger-copy flows
 - a catalog grouped by language and package
 - direct click-to-insert on catalog entries
 - right-click trigger-copy actions on catalog entries
-- an `Add Custom Entry` form
+- an expansion guide for wrapper and nested flows
+- a `Custom Entries` view
 - edit and delete actions for existing custom entries
 - a quick action to open the relevant settings JSON
 
@@ -252,6 +265,7 @@ Use this flow while developing:
    - type `>post`
    - type `>.html` or `>.css`
    - use `Translate Selection`
+   - use `Code Dictionary: Show Expansion Guide`
    - open the sidebar and inspect the catalog
 
 ## Validation And Build
@@ -268,6 +282,3 @@ The extension is structured to run in desktop, remote, and web-capable VS Code e
 - `main` points to the Node bundle
 - `browser` points to the web bundle
 - runtime editor logic avoids Node-only APIs
-
-
-

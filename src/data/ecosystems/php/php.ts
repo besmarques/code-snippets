@@ -9,9 +9,9 @@ export const PHP_CATALOG: LanguageCatalog = {
     {
       keyword: 'function',
       description: 'Create a typed PHP function.',
-      snippet: `function \${1:formatUser}(array \$user): string
+      snippet: `function \${2:formatUser}(array \$user): string
 {
-    \${2:\${TM_SELECTED_TEXT:return \$user['name'] ?? '';}}
+    \${1:\${TM_SELECTED_TEXT:return \$user['name'] ?? '';}}
 }
 \$0`,
     },
@@ -155,9 +155,9 @@ curl_close(\$ch);
     {
       keyword: 'middleware',
       description: 'Create a simple middleware-style handler.',
-      snippet: `function \${1:handle}(\$request, callable \$next)
+      snippet: `function \${2:handle}(\$request, callable \$next)
 {
-    \${2:\${TM_SELECTED_TEXT:if (!\$request->user()) {
+    \${1:\${TM_SELECTED_TEXT:if (!\$request->user()) {
         throw new RuntimeException('Unauthorized');
     }}}
 
@@ -169,3 +169,5 @@ curl_close(\$ch);
     ...PHP_PDO_COMMANDS,
   ],
 };
+
+

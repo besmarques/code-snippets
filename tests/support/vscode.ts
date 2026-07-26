@@ -7,6 +7,11 @@ interface CompletionProviderRegistration {
   triggerCharacters: string[];
 }
 
+interface OpenedDocument {
+  content: string;
+  language: string;
+}
+
 interface RegisteredTreeView {
   provider: unknown;
   viewId: string;
@@ -17,18 +22,25 @@ interface RegisteredWebviewView {
   viewId: string;
 }
 
+interface ShownDocument {
+  document: OpenedDocument;
+  options: unknown;
+}
+
 interface StubState {
   clipboardText: string;
   commands: Map<string, CommandHandler>;
   completionProviders: CompletionProviderRegistration[];
   configuration: Map<string, unknown>;
   informationMessages: string[];
+  openedDocuments: OpenedDocument[];
   outputMessages: string[];
   registeredTreeViews: RegisteredTreeView[];
   registeredWebviewViews: RegisteredWebviewView[];
   quickPickCalls: Array<{ items: any[]; options: unknown }>;
   quickPickHandler: QuickPickHandler;
   quickPickResult: unknown;
+  shownDocuments: ShownDocument[];
   warningMessages: string[];
 }
 
@@ -38,12 +50,14 @@ const state: StubState = {
   completionProviders: [],
   configuration: new Map(),
   informationMessages: [],
+  openedDocuments: [],
   outputMessages: [],
   registeredTreeViews: [],
   registeredWebviewViews: [],
   quickPickCalls: [],
   quickPickHandler: undefined,
   quickPickResult: undefined,
+  shownDocuments: [],
   warningMessages: [],
 };
 
@@ -226,6 +240,16 @@ export const workspace = {
     };
   },
 
+  async openTextDocument(options: { content: string; language: string }): Promise<OpenedDocument> {
+    const document = {
+      content: options.content,
+      language: options.language,
+    };
+
+    state.openedDocuments.push(document);
+    return document;
+  },
+
   getConfiguration(namespace: string) {
     return {
       get<T>(key: string, defaultValue: T): T {
@@ -267,6 +291,11 @@ export const window = {
     }
 
     return state.quickPickResult;
+  },
+
+  async showTextDocument(document: OpenedDocument, options: unknown): Promise<OpenedDocument> {
+    state.shownDocuments.push({ document, options });
+    return document;
   },
 
   async showWarningMessage(message: string): Promise<string> {
@@ -329,6 +358,10 @@ export function __getInformationMessages(): string[] {
   return [...state.informationMessages];
 }
 
+export function __getOpenedDocuments(): OpenedDocument[] {
+  return [...state.openedDocuments];
+}
+
 export function __getOutputMessages(): string[] {
   return [...state.outputMessages];
 }
@@ -349,6 +382,10 @@ export function __getRegisteredWebviewViews(): RegisteredWebviewView[] {
   return [...state.registeredWebviewViews];
 }
 
+export function __getShownDocuments(): ShownDocument[] {
+  return [...state.shownDocuments];
+}
+
 export function __getWarningMessages(): string[] {
   return [...state.warningMessages];
 }
@@ -359,12 +396,14 @@ export function __reset(): void {
   state.completionProviders = [];
   state.configuration.clear();
   state.informationMessages = [];
+  state.openedDocuments = [];
   state.outputMessages = [];
   state.registeredTreeViews = [];
   state.registeredWebviewViews = [];
   state.quickPickCalls = [];
   state.quickPickHandler = undefined;
   state.quickPickResult = undefined;
+  state.shownDocuments = [];
   state.warningMessages = [];
   window.activeTextEditor = undefined;
   workspace.workspaceFolders = undefined;

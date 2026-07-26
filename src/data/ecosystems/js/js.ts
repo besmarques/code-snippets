@@ -397,8 +397,8 @@ const \${2:value} = \${1}.get('\${3:key}');
     {
       keyword: 'component',
       description: 'Create a small JavaScript-style UI component placeholder.',
-      snippet: `function \${1:renderComponent}() {
-  return \`\${2:<section>Content</section>}\`;
+      snippet: `function \${2:renderComponent}() {
+  return \`\${1:\${TM_SELECTED_TEXT:<section>Content</section>}}\`;
 }
 \$0`,
     },
@@ -409,3 +409,4 @@ const \${2:value} = \${1}.get('\${3:key}');
     ...JS_SQL_COMMANDS,
   ],
 };
+

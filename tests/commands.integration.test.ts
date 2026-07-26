@@ -1,10 +1,11 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import * as vscode from 'vscode';
 
 import { expandAtCursor } from '../src/commands/expandAtCursor';
 import { searchCatalog, searchCatalogAndCopyTrigger } from '../src/commands/searchCatalog';
+import { showExpansionGuide } from '../src/commands/showExpansionGuide';
 import { copyEntryTrigger, insertEntryFromSidebar } from '../src/commands/sidebarEntryActions';
 import { translateSelection } from '../src/commands/translateSelection';
 import { formatEntryId, listEntries } from '../src/core/registry';
@@ -18,6 +19,7 @@ import {
   __getClipboardText,
   __getInformationMessages,
   __getQuickPickCalls,
+  __getShownDocuments,
   __reset,
   __setQuickPickHandler,
 } from './support/vscode';
@@ -144,6 +146,18 @@ test('searchCatalogAndCopyTrigger copies the selected trigger', async () => {
 
   assert.equal(__getClipboardText(), '>post.express.js');
   assert.equal(__getInformationMessages().includes('Copied >post.express.js to the clipboard.'), true);
+});
+
+test('showExpansionGuide opens a markdown guide with the shortcut and wrapper flow', async () => {
+  __reset();
+
+  await showExpansionGuide();
+
+  assert.equal(__getShownDocuments().length, 1);
+  assert.equal(__getShownDocuments()[0]?.document.language, 'markdown');
+  assert.match(__getShownDocuments()[0]?.document.content ?? '', /Ctrl\+Alt\+Enter/);
+  assert.match(__getShownDocuments()[0]?.document.content ?? '', /Wrap Existing Code/);
+  assert.match(__getShownDocuments()[0]?.document.content ?? '', />function\.js/);
 });
 
 test('insertEntryFromSidebar accepts a sidebar node and inserts its entry', async () => {

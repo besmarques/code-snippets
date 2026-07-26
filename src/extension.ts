@@ -5,6 +5,7 @@ import { openSidebar } from './commands/openSidebar';
 import { pickAndInsert } from './commands/pickAndInsert';
 import { searchCatalog, searchCatalogAndCopyTrigger } from './commands/searchCatalog';
 import { showAvailableEntries } from './commands/showAvailableEntries';
+import { showExpansionGuide } from './commands/showExpansionGuide';
 import { copyEntryTrigger, insertEntryFromSidebar } from './commands/sidebarEntryActions';
 import { translateSelection } from './commands/translateSelection';
 import { registerCompletionProvider } from './providers/completionProvider';
@@ -34,6 +35,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand(context, 'codeDictionary.insertEntryFromSidebar', insertEntryFromSidebar);
     registerCommand(context, 'codeDictionary.copyEntryTrigger', copyEntryTrigger);
     registerCommand(context, 'codeDictionary.showAvailableEntries', showAvailableEntries);
+    registerCommand(context, 'codeDictionary.showExpansionGuide', showExpansionGuide);
     registerCompletionProvider(context);
     registerSidebarProvider(context);
     registerCustomEntryFormProvider(context);
